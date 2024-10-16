@@ -534,37 +534,6 @@ class MenuAdministrarProyectos:
             print("Opción no válida")
             time.sleep(1)
             self.mostrar()
-# Clase de Menú de Empleado
-class MenuEmpleado:
-    def __init__(self, usuario):
-        self.usuario = usuario
-
-    def mostrar(self):
-        limpiar_pantalla()
-        print("--- Menú de Empleado ---\n")
-
-        opciones = [
-            "1. Ver Proyectos",
-            "2. Ver Departamentos",
-            "S. Salir"
-        ]
-
-        for opcion in opciones:
-            print(opcion)
-
-        seleccion = input("\nSeleccione una opción: ").strip().lower()
-
-        if seleccion == "1":
-            en_desarrollo()
-        elif seleccion == "2":
-            en_desarrollo()
-        elif seleccion == "s":
-            limpiar_pantalla()
-            return
-        else:
-            print("Opción no válida")
-            time.sleep(1)
-            self.mostrar()
 
 # Clase de Menú de Gerente
 class MenuGerente:
@@ -606,6 +575,38 @@ class MenuGerente:
                 print("Error en la selección")
                 time.sleep(1)
                 self.mostrar()
+
+# Clase de Menú de Empleado
+class MenuEmpleado:
+    def __init__(self, usuario):
+        self.usuario = usuario
+
+    def mostrar(self):
+        limpiar_pantalla()
+        print("--- Menú de Empleado ---\n")
+
+        opciones = [
+            "1. Ver Proyectos",
+            "2. Ver Departamentos",
+            "S. Salir"
+        ]
+
+        for opcion in opciones:
+            print(opcion)
+
+        seleccion = input("\nSeleccione una opción: ").strip().lower()
+
+        if seleccion == "1":
+            en_desarrollo()
+        elif seleccion == "2":
+            en_desarrollo()
+        elif seleccion == "s":
+            limpiar_pantalla()
+            return
+        else:
+            print("Opción no válida")
+            time.sleep(1)
+            self.mostrar()
 
 
 # Funciones Helper
