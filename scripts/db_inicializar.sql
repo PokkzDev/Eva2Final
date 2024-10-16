@@ -45,7 +45,7 @@ CREATE TABLE proyectos (
     nombre VARCHAR(50) NOT NULL,
     descripcion VARCHAR(100) NOT NULL,
     fecha_inicio DATE NOT NULL,
-    fecha_fin DATE NOT NULL,
+    fecha_fin DATE NOT NULL
 );
 
 -- Create empleado_proyecto junction table
