@@ -34,8 +34,20 @@ class EmpleadoModel:
 
         cursor.close()
         db.cerrar_conexion()
+        # Formatear las fechas de 'YYYY-MM-DD' a 'DD-MM-YYYY'
+        empleados_formateados = []
+        for empleado in empleados:
+            (id, rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol, nombre_departamento) = empleado
 
-        return empleados
+            # Formatear la fecha si no es None
+            if fecha_inicio_contrato:
+                fecha_inicio_contrato = fecha_inicio_contrato.strftime('%d-%m-%Y')
+
+            # Crear una nueva tupla con las fechas formateadas
+            empleado_formateado = (id, rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol, nombre_departamento)
+            empleados_formateados.append(empleado_formateado)
+
+        return empleados_formateados
 
     def crear(self, empleado: Empleado):
         db = DB_Conn()
@@ -86,7 +98,18 @@ class EmpleadoModel:
             empleado = cursor.fetchone()
             cursor.close()
             db.cerrar_conexion()
-            return empleado
+            if empleado:
+                # Asumiendo que la columna 'fecha_inicio_contrato' está en la posición 6 (índice 5 en la tupla)
+                (id, rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol) = empleado
+
+                # Formatear la fecha si no es None
+                if fecha_inicio_contrato:
+                    fecha_inicio_contrato = fecha_inicio_contrato.strftime('%d-%m-%Y')
+
+                # Crear una nueva tupla con la fecha formateada
+                empleado_formateado = (id, rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol)
+
+            return empleado_formateado
         except Exception as e:
             print(f"Error al buscar el empleado: {str(e)}")
             return False
@@ -133,6 +156,8 @@ class DepartamentoModel:
         departamentos = cursor.fetchall()
 
         cursor.close()
+        if departamentos == []:
+            print("No existe un departamento por el momento")
         db.cerrar_conexion()
 
         return departamentos
@@ -319,6 +344,7 @@ class ProyectoModel:
             proyecto = cursor.fetchone()
             cursor.close()
             db.cerrar_conexion()
+            
             return proyecto
         except Exception as e:
             print(f"Error al buscar el proyecto: {str(e)}")

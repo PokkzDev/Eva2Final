@@ -10,6 +10,7 @@ import os
 import time
 from prettytable import PrettyTable
 import bcrypt
+import datetime
 
 # Clase de Menú Principal
 class MenuPrincipal:
@@ -141,35 +142,59 @@ class MenuAdministrarEmpleados:
 
         elif seleccion == "2":
             limpiar_pantalla()
-            eleccion = input("¿Desea ver los departamentos que existen? s/n: ").lower().strip()
+            eleccion = input("¿Sabe los ID de los departamentos? s/n: ").lower().strip()
 
-            if eleccion == "s":
+            if eleccion != "s":
                 departamento_model = DepartamentoModel()
                 departamentos = departamento_model.listar()
 
-                # Crear una tabla
-                table = PrettyTable()
 
-                # Definir los nombres de las columnas
-                table.field_names = ["ID", "Nombre", "Descripcion"]
+                if departamentos != []:
+                    # Crear una tabla
+                    table = PrettyTable()
 
-                # Agregar filas a la tabla
-                for departamento in departamentos:
-                    table.add_row([departamento[0], departamento[1], departamento[2]])
-                
-                print(table)
-            else:
-                pass 
+                    # Definir los nombres de las columnas
+                    table.field_names = ["ID", "Nombre", "Descripcion"]
+
+                    # Agregar filas a la tabla
+                    for departamento in departamentos:
+                        table.add_row([departamento[0], departamento[1], departamento[2]])
+                    
+                    print(table)
+
 
             print("\n--- Agregar Empleado ---\n")
             
 
             rut = input("RUT: ")
             username = input("Username: ")
-            password = pwinput.pwinput(prompt="Password: ")
+            while True:
+                password = pwinput.pwinput(prompt="Password: ")
+                password2 = pwinput.pwinput(prompt="Confirme su contraseña: ")
+                if password == password2:
+                    break
+                else:
+                    print("No es la misma contraseña")
+
             direccion = input("Direccion: ")
-            telefono = input("Telefono 9XXXXXXXX: ")
-            fecha_inicio_contrato = input("Fecha Inicio Contrato YYYY-MM-DD: ")
+            while True:
+                telefono = input("Telefono 9XXXXXXXX: ")
+                telefono = telefono.strip()
+                try:
+                    if telefono.startswith("9"):
+                        telefono = int(telefono)
+                        break
+                    else:
+                        print("Usted no ingreso el formato correcto de un telefono")
+                except:
+                        print("Usted no ingreso el formato correcto de un telefono")
+            while True:
+                fecha_contrato = input("Fecha Inicio Contrato DD-MM-YYYY: ")
+                try:
+                    fecha_inicio_contrato = datetime.datetime.strptime(fecha_contrato, '%d-%m-%Y')
+                    break
+                except:
+                    print("Usted no igreso una fecha")
             salario = input("Salario: ")
             departamento_id = input("Departamento ID (0 para 'No asignado'): ")
             rol = input("Rol: ")
@@ -183,6 +208,7 @@ class MenuAdministrarEmpleados:
                 print("\nEmpleado creado exitosamente")
             except Exception as e:
                 print(f"\nError al crear el empleado: {str(e)}")
+
             
             pausar()
             self.mostrar()
@@ -207,7 +233,13 @@ class MenuAdministrarEmpleados:
                 hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt(rounds=10)).decode('utf-8')
                 new_direccion = input(f"Direccion ({empleado[4]}): ") or empleado[4]
                 new_telefono = input(f"Telefono ({empleado[5]}): ") or empleado[5]
-                new_fecha_inicio_contrato = input(f"Fecha Inicio Contrato ({empleado[6]}): ") or empleado[6]
+                while True:
+                    new_fecha_contrato = input(f"Fecha Inicio Contrato ({empleado[6]}): ") or empleado[6]
+                    try:
+                        new_fecha_inicio_contrato = datetime.datetime.strptime(new_fecha_contrato, '%d-%m-%Y')
+                        break
+                    except:
+                        print("No ingreso el formato de fecha")
                 new_salario = input(f"Salario ({empleado[7]}): ") or empleado[7]
                 new_departamento_id = input(f"Departamento ID ({empleado[8]}): ") or empleado[8]
                 new_rol = input(f"Rol ({empleado[9]}): ") or empleado[9]
