@@ -26,7 +26,7 @@ CREATE TABLE empleados (
     fecha_inicio_contrato DATE NOT NULL,
     salario FLOAT NOT NULL CHECK (salario > 0),
     departamento_id INT,
-    rol ENUM('admin', 'usuario', 'gerente') NOT NULL
+    rol ENUM('admin', 'gerente', 'usuario') NOT NULL
 );
 
 -- Create departamento table
@@ -46,6 +46,15 @@ CREATE TABLE proyectos (
     descripcion VARCHAR(100) NOT NULL,
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE NOT NULL
+);
+
+-- Create empleados_departamento junction table
+CREATE TABLE empleados_departamento (
+    empleado_id INT NOT NULL,
+    departamento_id INT NOT NULL,
+    PRIMARY KEY (empleado_id, departamento_id),
+    FOREIGN KEY (empleado_id) REFERENCES empleados(id) ON DELETE CASCADE,
+    FOREIGN KEY (departamento_id) REFERENCES departamento(id) ON DELETE CASCADE
 );
 
 -- Create empleado_proyecto junction table
@@ -100,6 +109,56 @@ VALUES
     ('87654321-9', 'usuario', '$2b$10$Zyk/rZJobzzf/iOKoyMgu.5SjVpmVsAtK0cMNHm0NISCjxk3BCu3K', 'Calle Falsa 321', '987654321', '2021-01-01', 500000, NULL, 'usuario'),
     ('123123123', 'b.altamirano', '$2b$10$sIkhFShlAKlg.jDD.fVnT.ghVgG3p1trd7ReJZGphyJxMbG4ATrhK', 'Calle Falsa 123', '123456789', '2021-01-01', 1000000, NULL, 'admin'),
     ('k-k', 'gerente', '$2b$10$D0jX/hLNTrkIKuwnEKbYauJfqtrNsb42Ucysp3dHTBF5a.Y94BwEC', 'Calle Falsa 123', '987654321', '2023-01-01', 700000, NULL, 'gerente');
+
+-- Insert multiple departments
+INSERT INTO departamento (nombre, descripcion, id_gerente)
+VALUES 
+    ('Desarrollo', 'Departamento de desarrollo de software', 5),
+    ('Ventas', 'Departamento de ventas', NULL),
+    ('Marketing', 'Departamento de marketing', NULL);
+
+-- Insert multiple projects
+INSERT INTO proyectos (nombre, descripcion, fecha_inicio, fecha_fin)
+VALUES 
+    ('Proyecto 1', 'Descripción del proyecto 1', '2021-01-01', '2021-12-31'),
+    ('Proyecto 2', 'Descripción del proyecto 2', '2021-01-01', '2021-12-31'),
+    ('Proyecto 3', 'Descripción del proyecto 3', '2021-01-01', '2021-12-31');
+
+-- Insert multiple employees into departments
+INSERT INTO empleados_departamento (empleado_id, departamento_id)
+VALUES 
+    (1, 1),
+    (2, 1),
+    (3, 2),
+    (4, 3),
+    (5, 1);
+
+-- Insert multiple employees into projects
+INSERT INTO empleado_proyecto (empleado_id, proyecto_id)
+VALUES 
+    (1, 1),
+    (2, 1),
+    (3, 2),
+    (4, 3),
+    (5, 1);
+
+-- Insert multiple reports
+INSERT INTO informe (titulo, descripcion, fecha, empleado_id, proyecto_id)
+VALUES 
+    ('Informe 1', 'Descripción del informe 1', '2021-01-01', 1, 1),
+    ('Informe 2', 'Descripción del informe 2', '2021-01-01', 2, 1),
+    ('Informe 3', 'Descripción del informe 3', '2021-01-01', 3, 2),
+    ('Informe 4', 'Descripción del informe 4', '2021-01-01', 4, 3),
+    ('Informe 5', 'Descripción del informe 5', '2021-01-01', 5, 1);
+
+-- Insert multiple time records
+INSERT INTO registro_de_tiempo (empleado_id, proyecto_id, fecha, horas_trabajadas, descripcion_tareas)
+VALUES 
+    (1, 1, '2021-01-01', 8, 'Descripción de tareas 1'),
+    (2, 1, '2021-01-01', 8, 'Descripción de tareas 2'),
+    (3, 2, '2021-01-01', 8, 'Descripción de tareas 3'),
+    (4, 3, '2021-01-01', 8, 'Descripción de tareas 4'),
+    (5, 1, '2021-01-01', 8, 'Descripción de tareas 5');
 
 -- Reload privileges to ensure the new user and permissions are applied
 FLUSH PRIVILEGES;

@@ -71,6 +71,8 @@ class EmpleadoModel:
         db.cerrar_conexion()
 
     def actualizar(self, empleado: Empleado, old_rut: str):
+
+        print(empleado)
         db = DB_Conn()
         conexion = db.iniciar_conexion()
         cursor = conexion.cursor()
@@ -170,7 +172,7 @@ class DepartamentoModel:
         try:
             # Buscar si el gerente existe en caso de que se haya ingresado
             if departamento.id_gerente:
-                cursor.execute("SELECT * FROM empleados WHERE rut = %s", (departamento.id_gerente,))
+                cursor.execute("SELECT * FROM empleados WHERE id = %s", (departamento.id_gerente,))
                 gerente = cursor.fetchone()
 
                 if not gerente:
@@ -202,33 +204,126 @@ class DepartamentoModel:
         cursor = conexion.cursor()
 
         try:
-            # Buscar si el gerente existe en caso de que se haya ingresado
-            if departamento.id_gerente:
-                cursor.execute("SELECT * FROM empleados WHERE id = %s", (departamento.id_gerente,))
-                gerente = cursor.fetchone()
+            # Actualizar Datos en BD
+            cursor.execute(
+                "UPDATE departamento SET nombre = %s, descripcion = %s, id_gerente = %s WHERE id = %s",
+                (departamento.nombre, departamento.descripcion, departamento.id_gerente, id)
+            )
 
-                if not gerente:
-                    raise Exception("El gerente no existe")
-                
-                try:
-                    cursor.execute(
-                        "UPDATE departamento SET nombre = %s, descripcion = %s, id_gerente = %s WHERE id = %s", 
-                        (departamento.nombre, departamento.descripcion, departamento.id_gerente, id)
-                    )
-
-                    conexion.commit()
-                except Exception as e:
-                    print(f"Error al actualizar el departamento: {str(e)}")
-                    conexion.rollback()
-                    return
-                finally:
-                    cursor.close()
-                    db.cerrar_conexion()  
+            conexion.commit()
+            cursor.close()
         except Exception as e:
-            print(f"Error al buscar el gerente: {str(e)}")
-            return False
+            print(f"Error al actualizar el departamento: {str(e)}")
+            conexion.rollback()
+            return
+        finally:
+            cursor.close()
+            db.cerrar_conexion()
+
+    def listar_empleados(self, id_departamento: int):
+        db = DB_Conn()
+        conexion = db.iniciar_conexion()
+        cursor = conexion.cursor()
+
+        cursor.execute(
+            "SELECT e.* FROM empleados e JOIN empleados_departamento ed ON e.id = ed.empleado_id WHERE ed.departamento_id = %s",
+            (id_departamento,)
+        )
+
+        empleados = cursor.fetchall()
+
+        cursor.close()
+        db.cerrar_conexion()
+
+        return empleados
+
+    def asignar_empleado(self, id_empleado: int, id_departamento: int):
+        """
+            CREATE TABLE empleados_departamento (
+            empleado_id INT NOT NULL,
+            departamento_id INT NOT NULL,
+            PRIMARY KEY (empleado_id, departamento_id),
+            FOREIGN KEY (empleado_id) REFERENCES empleados(id) ON DELETE CASCADE,
+            FOREIGN KEY (departamento_id) REFERENCES departamento(id) ON DELETE CASCADE,
+        );
+        """
         
-          
+        db = DB_Conn()
+        conexion = db.iniciar_conexion()
+        cursor = conexion.cursor()
+
+        # Verificar si el empleado ya está asignado un departamento
+        cursor.execute(
+            "SELECT * FROM empleados_departamento WHERE empleado_id = %s",
+            (id_empleado,)
+        )
+
+        empleado_departamento = cursor.fetchone()
+
+        if empleado_departamento:
+            return False
+        else:
+            try:
+                cursor.execute(
+                    "INSERT INTO empleados_departamento (empleado_id, departamento_id) VALUES (%s, %s)",
+                    (id_empleado, id_departamento)
+                )
+
+                conexion.commit()
+                cursor.close()
+
+                return True
+            except Exception as e:
+                print(f"Error al asignar empleado a departamento: {str(e)}")
+                conexion.rollback()
+                return
+            finally:
+                cursor.close()
+                db.cerrar_conexion()
+
+    def modificar_empleado(self, id_empleado: int, id_departamento: int):
+        db = DB_Conn()
+        conexion = db.iniciar_conexion()
+        cursor = conexion.cursor()
+
+        try:
+            # modificar empleado de departamento
+            cursor.execute(
+                "UPDATE empleados_departamento SET departamento_id = %s WHERE empleado_id = %s",
+                (id_departamento, id_empleado)
+            )
+
+            conexion.commit()
+            cursor.close()
+        except Exception as e:
+            print(f"Error al modificar empleado de departamento: {str(e)}")
+            conexion.rollback()
+            return
+        finally:
+            cursor.close()
+            db.cerrar_conexion()
+        
+    def eliminar_empleado(self, id_empleado: int):
+        db = DB_Conn()
+        conexion = db.iniciar_conexion()
+        cursor = conexion.cursor()
+
+        try:
+            # Eliminar empleado de departamento
+            cursor.execute(
+                "DELETE FROM empleados_departamento WHERE empleado_id = %s",
+                (id_empleado,)
+            )
+
+            conexion.commit()
+            cursor.close()
+        except Exception as e:
+            print(f"Error al eliminar empleado de departamento: {str(e)}")
+            conexion.rollback()
+            return
+        finally:
+            cursor.close()
+            db.cerrar_conexion()
 
     def existe(self, id: int):
         db = DB_Conn()
@@ -454,6 +549,118 @@ class RegistroModel:
         finally:
             cursor.close()
             db.cerrar_conexion()
-        
+
+# Clase Informe que representa un informe de tiempo de un empleado en un proyecto
+class Informe: 
+    """
+        CREATE TABLE informe (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        titulo VARCHAR(100) NOT NULL,
+        descripcion TEXT NOT NULL,
+        fecha DATE NOT NULL,
+        empleado_id INT NOT NULL,
+        proyecto_id INT NOT NULL,
+        FOREIGN KEY (empleado_id) REFERENCES empleados(id) ON DELETE CASCADE,
+        FOREIGN KEY (proyecto_id) REFERENCES proyectos(id) ON DELETE CASCADE,
+        INDEX (empleado_id),
+        INDEX (proyecto_id)
+    );
+    """ 
+    def __init__(self, titulo: str, descripcion: str, fecha: str, empleado_id: int, proyecto_id: int):
+        self.titulo = titulo
+        self.descripcion = descripcion
+        self.fecha = fecha
+        self.empleado_id = empleado_id
+        self.proyecto_id = proyecto_id
+
+# Clase InformeModel que maneja la lógica de la base de datos
+class InformeModel:
+    def listar(self):
+        db = DB_Conn()
+        conexion = db.iniciar_conexion()
+        cursor = conexion.cursor()
+
+        cursor.execute("""
+                    SELECT i.id, e.username, p.nombre AS Nombre_Proyecto, i.fecha AS FECHA_INFORME, i.titulo AS Titulo, i.descripcion AS Descripcion
+                    FROM informe i
+                    JOIN empleados e ON i.empleado_id = e.id
+                    JOIN proyectos p ON i.proyecto_id = p.id;
+        """)
+
+        informes = cursor.fetchall()
+
+        return informes
+    
+    def crear(self, informe: Informe):
+        db = DB_Conn()
+        conexion = db.iniciar_conexion()
+        cursor = conexion.cursor()
+
+        try:
+            cursor.execute(
+                "INSERT INTO informe (titulo, descripcion, fecha, empleado_id, proyecto_id) VALUES (%s, %s, %s, %s, %s)", 
+                (informe.titulo, informe.descripcion, informe.fecha, informe.empleado_id, informe.proyecto_id)
+            )
+
+            conexion.commit()
+        except Exception as e:
+            print(f"Error al crear el informe: {str(e)}")
+            conexion.rollback()
+            return
+        finally:
+            cursor.close()
+            db.cerrar_conexion()
+
+    def actualizar(self, informe: Informe, id: int):
+        db = DB_Conn()
+        conexion = db.iniciar_conexion()
+        cursor = conexion.cursor()
+
+        try:
+            cursor.execute(
+                "UPDATE informe SET titulo = %s, descripcion = %s, fecha = %s, empleado_id = %s, proyecto_id = %s WHERE id = %s", 
+                (informe.titulo, informe.descripcion, informe.fecha, informe.empleado_id, informe.proyecto_id, id)
+            )
+
+            conexion.commit()
+        except Exception as e:
+            print(f"Error al actualizar el informe: {str(e)}")
+            conexion.rollback()
+            return
+        finally:
+            cursor.close()
+            db.cerrar_conexion()
+    
+    def existe(self, id: int):
+        db = DB_Conn()
+        conexion = db.iniciar_conexion()
+         
+        try: 
+            cursor = conexion.cursor()
+            cursor.execute("SELECT * FROM informe WHERE id = %s", (id,))
+            informe = cursor.fetchone()
+            cursor.close()
+            db.cerrar_conexion()
+            
+            return informe
+        except Exception as e:
+            print(f"Error al buscar el informe: {str(e)}")
+            return False
+
+    def eliminar(self, id: int):
+        db = DB_Conn()
+        conexion = db.iniciar_conexion()
+        cursor = conexion.cursor()
+
+        try:
+            cursor.execute("DELETE FROM informe WHERE id = %s", (id,))
+            conexion.commit()
+        except Exception as e:
+            print(f"Error al eliminar el informe: {str(e)}")
+            conexion.rollback()
+            return
+        finally:
+            cursor.close()
+            db.cerrar_conexion()
 
     
