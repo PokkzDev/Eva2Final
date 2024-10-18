@@ -24,7 +24,7 @@ CREATE TABLE empleados (
     direccion VARCHAR(100) NOT NULL,
     telefono VARCHAR(20) NOT NULL,
     fecha_inicio_contrato DATE NOT NULL,
-    salario DECIMAL(10, 2) NOT NULL CHECK (salario > 0),
+    salario FLOAT NOT NULL CHECK (salario > 0),
     departamento_id INT,
     rol ENUM('admin', 'usuario', 'gerente') NOT NULL
 );
