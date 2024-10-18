@@ -480,8 +480,23 @@ class MenuAdministrarProyectos:
 
             nombre = input("Nombre: ")
             descripcion = input("Descripcion: ")
-            fecha_inicio = input("Fecha Inicio YYYY-MM-DD: ")
-            fecha_fin = input("Fecha Fin YYYY-MM-DD: ")
+            while True:
+                try:
+                    fecha_inicio = input("Fecha Inicio DD-MM-YYYY: ")
+                    fecha_inicio = datetime.datetime.strptime(fecha_inicio, '%d-%m-%Y')
+                    fecha_fin = input("Fecha Fin DD-MM-YYYY: ")
+                    fecha_fin = datetime.datetime.strptime(fecha_fin, '%d-%m-%Y')
+                except:
+                    print("No ingreso el formato de fecha solicitado")
+                pausar()
+
+                diferencia_fechas = fecha_fin - fecha_inicio
+                diferencia_fechas = diferencia_fechas.days
+                pausar()
+                if diferencia_fechas > 0:
+                    break
+                else:
+                    print("No puede ser la fecha de termino anterior a la de inicio")
 
             # Crear el objeto Proyecto
             proyecto = Proyecto(nombre, descripcion, fecha_inicio, fecha_fin)
