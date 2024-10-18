@@ -262,16 +262,6 @@ class DepartamentoModel:
             db.cerrar_conexion()
 
 # Clase Proyecto que representa un proyecto de la empresa
-"""
-    CREATE TABLE proyectos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL,
-    descripcion VARCHAR(100) NOT NULL,
-    fecha_inicio DATE NOT NULL,
-    fecha_fin DATE,
-    CONSTRAINT chk_fecha CHECK (fecha_fin IS NULL OR fecha_fin > fecha_inicio)
-);
-"""
 class Proyecto:
     def __init__(self, nombre, descripcion, fecha_inicio, fecha_fin):
         self.nombre = nombre
@@ -366,3 +356,104 @@ class ProyectoModel:
             cursor.close()
             db.cerrar_conexion()
 
+# Clase RegistroDeTiempo que representa un registro de tiempo de un empleado en un proyecto
+class Registro:
+    def __init__(self, empleado_id: int, proyecto_id: int, fecha: str, horas_trabajadas: float, descripcion_tareas: str):
+        self.empleado_id = empleado_id
+        self.proyecto_id = proyecto_id
+        self.fecha = fecha
+        self.horas_trabajadas = horas_trabajadas
+        self.descripcion_tareas = descripcion_tareas
+
+# Clase RegistroModel que maneja la lógica de la base de datos
+class RegistroModel:
+    def listar(self):
+        db = DB_Conn()
+        conexion = db.iniciar_conexion()
+        cursor = conexion.cursor()
+
+        cursor.execute("""
+                    SELECT r.id, e.username, p.nombre AS Nombre_Proyecto, r.fecha AS FECHA_REGISTRO, r.horas_trabajadas AS Horas_Trabajadas, r.descripcion_tareas AS Tarea_Descrita
+                    FROM registro_de_tiempo r
+                    JOIN empleados e ON r.empleado_id = e.id
+                    JOIN proyectos p ON r.proyecto_id = p.id;
+        """)
+
+        registros = cursor.fetchall()
+
+        return registros
+    
+    def crear(self, registro: Registro):
+        db = DB_Conn()
+        conexion = db.iniciar_conexion()
+        cursor = conexion.cursor()
+
+        try:
+            cursor.execute(
+                "INSERT INTO registro_de_tiempo (empleado_id, proyecto_id, fecha, horas_trabajadas, descripcion_tareas) VALUES (%s, %s, %s, %s, %s)", 
+                (registro.empleado_id, registro.proyecto_id, registro.fecha, registro.horas_trabajadas, registro.descripcion_tareas)
+            )
+
+            conexion.commit()
+        except Exception as e:
+            print(f"Error al crear el registro: {str(e)}")
+            conexion.rollback()
+            return
+        finally:
+            cursor.close()
+            db.cerrar_conexion()
+
+    def actualizar(self, registro: Registro, id: int):
+        db = DB_Conn()
+        conexion = db.iniciar_conexion()
+        cursor = conexion.cursor()
+
+        try:
+            cursor.execute(
+                "UPDATE registro_de_tiempo SET empleado_id = %s, proyecto_id = %s, fecha = %s, horas_trabajadas = %s, descripcion_tareas = %s WHERE id = %s", 
+                (registro.empleado_id, registro.proyecto_id, registro.fecha, registro.horas_trabajadas, registro.descripcion_tareas, id)
+            )
+
+            conexion.commit()
+        except Exception as e:
+            print(f"Error al actualizar el registro: {str(e)}")
+            conexion.rollback()
+            return
+        finally:
+            cursor.close()
+            db.cerrar_conexion()
+    
+    def existe(self, id: int):
+        db = DB_Conn()
+        conexion = db.iniciar_conexion()
+         
+        try: 
+            cursor = conexion.cursor()
+            cursor.execute("SELECT * FROM registro_de_tiempo WHERE id = %s", (id,))
+            registro = cursor.fetchone()
+            cursor.close()
+            db.cerrar_conexion()
+            
+            return registro
+        except Exception as e:
+            print(f"Error al buscar el registro: {str(e)}")
+            return False
+
+    def eliminar(self, id: int):
+        db = DB_Conn()
+        conexion = db.iniciar_conexion()
+        cursor = conexion.cursor()
+
+        try:
+            cursor.execute("DELETE FROM registro_de_tiempo WHERE id = %s", (id,))
+            conexion.commit()
+        except Exception as e:
+            print(f"Error al eliminar el registro: {str(e)}")
+            conexion.rollback()
+            return
+        finally:
+            cursor.close()
+            db.cerrar_conexion()
+        
+
+    

@@ -4,7 +4,7 @@
 
 # Importar Modulos
 from modules.auth import Auth
-from modules.modelo import Empleado, EmpleadoModel, Departamento, DepartamentoModel, Proyecto, ProyectoModel
+from modules.modelo import Empleado, EmpleadoModel, Departamento, DepartamentoModel, Proyecto, ProyectoModel, Registro, RegistroModel
 import pwinput
 import os
 import time
@@ -50,19 +50,21 @@ class MenuPrincipal:
 # Clase de Menú de Administrador
 class MenuAdmin:
     def __init__(self, usuario):
-        self.usuario = usuario
-
+        self.usuario = usuario.capitalize()
+        print(f"{self.usuario}")
     def mostrar(self):
         while True:
             limpiar_pantalla()
+            
             print("--- Menú de Administrador ---\n")
-
-            print(f"Bienvenido {self.usuario}\n")
+            print(f"Bienvenido, {self.usuario}!\n")
 
             opciones = [
                 "1. Administrar Empleados",
                 "2. Administrar Departamentos",
                 "3. Administrar Proyectos",
+                "4. Administrar Registros de Tiempo",
+                "5. Administrar Informes",
                 "S. Salir"
             ]
 
@@ -79,6 +81,12 @@ class MenuAdmin:
                     menu = MenuAdministrarDepartamentos()
                     menu.mostrar()
                 elif seleccion_menu == "3":
+                    menu = MenuAdministrarProyectos()
+                    menu.mostrar()
+                elif seleccion_menu == "4":
+                    menu = MenuAdministrarRegistros()
+                    menu.mostrar()
+                elif seleccion_menu == "5":
                     menu = MenuAdministrarProyectos()
                     menu.mostrar()
                 elif seleccion_menu == "s":
@@ -102,7 +110,6 @@ class MenuAdministrarEmpleados:
     def mostrar(self):
         limpiar_pantalla()
         print("--- Menú de Administrar Empleados ---\n")
-
 
         opciones = [
             "1. Ver Empleados",
@@ -228,7 +235,7 @@ class MenuAdministrarEmpleados:
                 # Mostrar los datos del empleado
                 new_rut = input(f"RUT ({empleado[1]}): ") or empleado[1]
                 new_username = input(f"Username ({empleado[2]}): ") or empleado[2]
-                new_password = pwinput.pwinput(prompt="Password: ")
+                new_password = pwinput.pwinput(prompt="Password: ") 
                 # Encriptar la contraseña
                 hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt(rounds=10)).decode('utf-8')
                 new_direccion = input(f"Direccion ({empleado[4]}): ") or empleado[4]
@@ -567,6 +574,149 @@ class MenuAdministrarProyectos:
             time.sleep(1)
             self.mostrar()
 
+# Clase de Menú de Administrar Registros
+class MenuAdministrarRegistros:
+    def mostrar(self):
+        limpiar_pantalla()
+        print("--- Menú de Administrar Registros ---\n")
+
+        opciones = [
+            "1. Ver Registros",
+            "2. Agregar Registro",
+            "3. Modificar Registro",
+            "4. Eliminar Registro",
+            "S. Volver"
+        ]
+
+        for opcion in opciones:
+            print(opcion)
+
+        seleccion = input("\nSeleccione una opción: ").strip().lower()
+
+        if seleccion == "1":
+            limpiar_pantalla()
+            print("--- Registros de Tiempo ---\n")
+            
+            registro_model = RegistroModel()
+            registros = registro_model.listar()
+
+            # Crear una tabla
+            table = PrettyTable()
+
+            # Definir los nombres de las columnas
+            table.field_names = ["ID", "Username", "Nombre Proyecto", "Fecha", "Horas Trabajadas", "Tarea Descrita"]
+            
+            # Transformar la fecha a un formato más legible
+            for registro in registros:
+                fecha = registro[3].strftime("%d-%m-%Y")
+                table.add_row([registro[0], registro[1], registro[2], fecha, registro[4], registro[5]])
+            
+            # Imprimir la tabla
+            print(table)
+
+            pausar()
+            self.mostrar()  
+
+        elif seleccion == "2":
+            limpiar_pantalla()
+            print("--- Agregar Registro ---\n")
+
+            empleado_id = input("ID Empleado: ")
+            proyecto_id = input("ID Proyecto: ")
+            
+            while True:
+                fecha = input("Fecha YYYY-MM-DD: ")
+                try:
+                    fecha = datetime.datetime.strptime(fecha, '%Y-%m-%d')
+                    break
+                except:
+                    print("No ingreso el formato de fecha")
+
+            horas_trabajadas = input("Horas Trabajadas: ")
+            descripcion_tareas = input("Descripcion de Tareas: ")
+
+            # Crear el objeto Registro
+            registro = Registro(empleado_id, proyecto_id, fecha, horas_trabajadas, descripcion_tareas)
+
+            try:
+                # Guardar el registro en la base de datos
+                registro_model = RegistroModel()
+                registro_model.crear(registro)
+                print("\nRegistro creado exitosamente")
+
+            except Exception as e:
+                print(f"\nError al crear el registro: {str(e)}")
+            
+            pausar()
+            self.mostrar()
+        elif seleccion == "3":
+            limpiar_pantalla()
+            print("--- Modificar Registro ---\n")
+
+            id = input("Ingrese el ID del registro a modificar: ")
+
+            # Buscar el registro en la base de datos
+            registro_model = RegistroModel()
+            registro = registro_model.existe(id)
+
+            if registro:
+                print("\nRegistro encontrado\n")
+
+                # Mostrar los datos del registro
+                new_empleado_id = input(f"ID Empleado ({registro[1]}): ") or registro[1]
+                new_proyecto_id = input(f"ID Proyecto ({registro[2]}): ") or registro[2]
+                new_fecha = input(f"Fecha ({registro[3]}): ") or registro[3]
+                new_horas_trabajadas = input(f"Horas Trabajadas ({registro[4]}): ") or registro[4]
+                new_descripcion_tareas = input(f"Descripcion de Tareas ({registro[5]}): ") or registro[5]
+
+                # Crear el objeto Registro
+                registro = Registro(new_empleado_id, new_proyecto_id, new_fecha, new_horas_trabajadas, new_descripcion_tareas)
+
+                try:
+                    # Actualizar el registro en la base de datos
+                    registro_model.actualizar(registro, id)
+                    print("\nRegistro actualizado exitosamente")
+                    pausar()
+                    self.mostrar()
+
+                except Exception as e:
+                    print(f"\nError al actualizar el registro: {str(e)}")
+
+            else:
+                print("\nRegistro no encontrado")
+                pausar()
+                self.mostrar()
+        elif seleccion == "4":
+            limpiar_pantalla()
+            print("--- Eliminar Registro ---\n")
+
+            id = input("Ingrese el ID del registro a eliminar: ")
+
+            # Buscar el registro en la base de datos
+            registro_model = RegistroModel()
+            registro = registro_model.existe(id)
+
+            if registro:
+                print("\nRegistro encontrado\n")
+
+                try:
+                    # Eliminar el registro de la base de datos
+                    registro_model.eliminar(id)
+                    print("\nRegistro eliminado exitosamente")
+                    pausar()
+                    self.mostrar()
+                except Exception as e:
+                    print(f"\nError al eliminar el registro: {str(e)}")
+                    pausar()
+                    self.mostrar()
+            else:
+                print("\nRegistro no encontrado")
+                pausar()
+                self.mostrar()
+
+        elif seleccion == "s":
+            return
+         
 # Clase de Menú de Gerente
 class MenuGerente:
     def __init__(self, usuario):
@@ -639,7 +789,6 @@ class MenuEmpleado:
             print("Opción no válida")
             time.sleep(1)
             self.mostrar()
-
 
 # Funciones Helper
 def limpiar_pantalla():
