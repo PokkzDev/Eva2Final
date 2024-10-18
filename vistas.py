@@ -165,25 +165,69 @@ class MenuAdministrarEmpleados:
 
             print("\n--- Agregar Empleado ---\n")
             
-
-            rut = input("RUT: ")
-            username = input("Username: ")
             while True:
-                password = pwinput.pwinput(prompt="Password: ")
-                password2 = pwinput.pwinput(prompt="Confirme su contraseña: ")
-                if password == password2:
+                rut = input("RUT: ")
+                if "-" not in rut:
+                    print("No tiene digito verificador")
+                
+                partes = rut.split("-")
+                
+                if len(partes) != 2:
+                    print("No contiene un digito verificador")
+                
+                try:
+                    numero, digito_verificador = partes
+                    # Verificar que la longitud del número esté entre 7 y 8 y que contenga solo dígitos
+                    if not (7 <= len(numero) <= 8 and numero.isdigit()):
+                        print("El rut no tiene el largo requerido\n 7 u 8 digitos sin contar el digito verificador separado por un '-'")
+                        continue
+                    # Validar que el dígito verificador tenga exactamente un carácter y sea un número del 0 al 9 o 'k'
+                    if len(digito_verificador) != 1 or not (digito_verificador.isdigit() or digito_verificador.lower() == 'k'):
+                        print("no es un digito verificador valido")
+                        continue
+                except:
+                    print()
+                    continue
+                if rut.strip():
                     break
                 else:
-                    print("No es la misma contraseña")
+                    print("El rut no puede estar vacio")
+            while True:
+                username = input("Username: ")
+                if username.strip():
+                    break
+                else:
+                    print("El username no puede estar vacio")
+            while True:
+                password = pwinput.pwinput(prompt="Password: ")
+                password2 = pwinput.pwinput(prompt="Confirme su contraseña: ") # Verifica que la contraseña sea la misma
 
-            direccion = input("Direccion: ")
+                if password == password2:
+                    if password.strip():  # Verifica que la contraseña no esté vacía o sea solo espacios en blanco
+                        print("Contraseña válida y coincidente")
+                        break
+                    else:
+                        print("La contraseña no puede estar vacía.")
+                else:
+                    print("Las contraseñas no coinciden. Intente de nuevo.")
+
+            while True:
+                direccion = input("Direccion: ")
+                if direccion.strip():
+                    break
+                else:
+                    print("La direccion no puede estar vacia")
             while True:
                 telefono = input("Telefono 9XXXXXXXX: ")
                 telefono = telefono.strip()
                 try:
                     if telefono.startswith("9"):
-                        telefono = int(telefono)
-                        break
+                        print(len(telefono))
+                        if len(telefono) == 9:
+                            telefono = int(telefono)
+                            break
+                        else:
+                            print("No tiene la cantidad de numeros correspondiente a un telefono")
                     else:
                         print("Usted no ingreso el formato correcto de un telefono")
                 except:
@@ -195,9 +239,37 @@ class MenuAdministrarEmpleados:
                     break
                 except:
                     print("Usted no igreso una fecha")
-            salario = input("Salario: ")
-            departamento_id = input("Departamento ID (0 para 'No asignado'): ")
-            rol = input("Rol: ")
+            while True:
+                salario = input("Salario: ")
+                try:
+                    if salario.strip():
+                        salario = float(salario)
+                        break
+                    else:
+                        print("El salario no puede estar vacio")
+                except:
+                    print("Esto no es un digito")
+
+            while True:
+                departamento_id = input("Departamento ID (0 para 'No asignado'): ")
+                try:
+                    if departamento_id.strip():
+                        if departamento_id.isdigit():
+                            break
+                    else:
+                        print("Ingrese una opcion valida")
+                except:
+                    print("Usted no agrego un ID valido")
+
+            while True:
+                rol = input("Rol: ")
+                if rol.strip():
+                    if rol == "admin" or rol == "usuario" or rol == "gerente":
+                        break
+                    else:
+                        print("Usted no ingreso un rol existente")
+                else:
+                    print("Usted debe ingresar un rol")
 
             # Crear el objeto Empleado
             empleado = Empleado(rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol)
@@ -225,14 +297,71 @@ class MenuAdministrarEmpleados:
             if empleado:
                 print("\nEmpleado encontrado\n")
 
-                # Mostrar los datos del empleado
-                new_rut = input(f"RUT ({empleado[1]}): ") or empleado[1]
-                new_username = input(f"Username ({empleado[2]}): ") or empleado[2]
+                while True: # Ingreso del nuevo rut en caso que lo requiera
+                    # Mostrar los datos del empleado
+                    new_rut = input(f"RUT ({empleado[1]}): ") or empleado[1]
+
+                    if "-" not in new_rut:
+                        print("No tiene digito verificador")
+                    partes = new_rut.split("-")
+                    
+                    if len(partes) != 2:
+                        print("No contiene un digito verificador")
+                    
+                    try:
+                        numero, digito_verificador = partes
+                        # Verificar que la longitud del número esté entre 7 y 8 y que contenga solo dígitos
+                        if not (7 <= len(numero) <= 8 and numero.isdigit()):
+                            print("El rut no tiene el largo requerido\n 7 u 8 digitos sin contar el digito verificador separado por un '-'")
+                            continue
+                        # Validar que el dígito verificador tenga exactamente un carácter y sea un número del 0 al 9 o 'k'
+                        if len(digito_verificador) != 1 or not (digito_verificador.isdigit() or digito_verificador.lower() == 'k'):
+                            print("no es un digito verificador valido")
+                            continue
+                    except:
+                        print()
+                        continue
+                    if rut.strip():
+                        pausar()
+                        break
+                    else:
+                        print("El rut no puede estar vacio")
+
+
+                while True: # ingreso nuevo username si requiere cambiarse
+                    new_username = input(f"Username ({empleado[2]}): ") or empleado[2]
+                    if new_username.strip():
+                        break
+                    else:
+                        print("El username no puede estar vacio")
+
                 new_password = pwinput.pwinput(prompt="Password: ")
                 # Encriptar la contraseña
                 hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt(rounds=10)).decode('utf-8')
-                new_direccion = input(f"Direccion ({empleado[4]}): ") or empleado[4]
-                new_telefono = input(f"Telefono ({empleado[5]}): ") or empleado[5]
+
+                while True: # Ingreso de nueva direccion en caso de que lo requiera
+                    new_direccion = input(f"Direccion ({empleado[4]}): ") or empleado[4]
+                    if new_direccion.strip():
+                        break
+                    else:
+                        print("La direccion no puede estar vacia")
+
+                while True: # Ingreso de un nuevo telefono en caso que lo requiera
+                    new_telefono = input(f"Telefono ({empleado[5]}): ") or empleado[5]
+                    new_telefono = new_telefono.strip()
+                    try:
+                        if new_telefono.startswith("9"):
+                            print(len(new_telefono))
+                            if len(new_telefono) == 9:
+                                new_telefono = int(new_telefono)
+                                break
+                            else:
+                                print("No tiene la cantidad de numeros correspondiente a un telefono")
+                        else:
+                            print("Usted no ingreso el formato correcto de un telefono")
+                    except:
+                            print("Usted no ingreso el formato correcto de un telefono")
+
                 while True:
                     new_fecha_contrato = input(f"Fecha Inicio Contrato ({empleado[6]}): ") or empleado[6]
                     try:
@@ -240,9 +369,32 @@ class MenuAdministrarEmpleados:
                         break
                     except:
                         print("No ingreso el formato de fecha")
-                new_salario = input(f"Salario ({empleado[7]}): ") or empleado[7]
+
+                while True:
+                    new_salario = input(f"Salario ({empleado[7]}): ") or empleado[7]
+                    try:
+                        new_salario = str(new_salario)
+                        if new_salario.strip():
+                            new_salario = float(new_salario)
+                            break
+                        else:
+                            print("El salario no puede estar vacio")
+                    except:
+                        print("Esto no es un digito")
+
+
                 new_departamento_id = input(f"Departamento ID ({empleado[8]}): ") or empleado[8]
-                new_rol = input(f"Rol ({empleado[9]}): ") or empleado[9]
+
+
+                while True:
+                    new_rol = input(f"Rol ({empleado[9]}): ") or empleado[9]
+                    if new_rol.strip():
+                        if new_rol == "admin" or new_rol == "usuario" or new_rol == "gerente":
+                            break
+                        else:
+                            print("Usted no ingreso un rol existente")
+                    else:
+                        print("Usted debe ingresar un rol")
 
                 # Crear el objeto Empleado
                 empleado = Empleado(new_rut, new_username, hashed_password, new_direccion, new_telefono, new_fecha_inicio_contrato, new_salario, new_departamento_id, new_rol)
