@@ -31,12 +31,6 @@ class Auth:
         self.db.cerrar_conexion()
 
 if __name__ == '__main__':
-    usuario = "admin"
-    password = "Asdf1234"
-
-    auth = Auth()
-    if auth.iniciar_sesion(usuario, password):
-        print("Usuario autenticado", auth.iniciar_sesion(usuario, password))
-    else:
-        print("Usuario no autenticado")
+    pass
+        
     
