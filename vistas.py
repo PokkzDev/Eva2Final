@@ -4,7 +4,7 @@
 
 # Importar Modulos
 from modules.auth import Auth
-from modules.modelo import Empleado, EmpleadoModel, Departamento, DepartamentoModel, Proyecto, ProyectoModel, Registro, RegistroModel
+from modules.modelo import Empleado, EmpleadoModel, Departamento, DepartamentoModel, Proyecto, ProyectoModel, Registro, RegistroModel, Informe, InformeModel
 import pwinput
 import os
 import time
@@ -87,7 +87,7 @@ class MenuAdmin:
                     menu = MenuAdministrarRegistros()
                     menu.mostrar()
                 elif seleccion_menu == "5":
-                    menu = MenuAdministrarProyectos()
+                    menu = MenuAdministrarInformes()
                     menu.mostrar()
                 elif seleccion_menu == "s":
                     limpiar_pantalla()
@@ -172,25 +172,79 @@ class MenuAdministrarEmpleados:
 
             print("\n--- Agregar Empleado ---\n")
             
-
-            rut = input("RUT: ")
-            username = input("Username: ")
             while True:
-                password = pwinput.pwinput(prompt="Password: ")
-                password2 = pwinput.pwinput(prompt="Confirme su contraseña: ")
-                if password == password2:
+                rut = input("RUT: ")
+                if "-" not in rut:
+                    print("No tiene digito verificador")
+                
+                partes = rut.split("-")
+                
+                if len(partes) != 2:
+                    print("No contiene un digito verificador")
+                
+                try:
+                    numero, digito_verificador = partes
+                    # Verificar que la longitud del número esté entre 7 y 8 y que contenga solo dígitos
+                    if not (7 <= len(numero) <= 8 and numero.isdigit()):
+                        print("El rut no tiene el largo requerido\n 7 u 8 digitos sin contar el digito verificador separado por un '-'")
+                        continue
+                    # Validar que el dígito verificador tenga exactamente un carácter y sea un número del 0 al 9 o 'k'
+                    if len(digito_verificador) != 1 or not (digito_verificador.isdigit() or digito_verificador.lower() == 'k'):
+                        print("no es un digito verificador valido")
+                        continue
+                except:
+                    print()
+                    continue
+                if rut.strip():
                     break
                 else:
-                    print("No es la misma contraseña")
+                    print("El rut no puede estar vacio")
+            while True:
+                username = input("Username: ")
+                if username.strip():
+                    break
+                else:
+                    print("El username no puede estar vacio")
+            while True:
+                password = pwinput.pwinput(prompt="Password: ")
 
-            direccion = input("Direccion: ")
+                # Si contraseña esta vacia
+                if not password.strip():
+                    print("La contraseña no puede estar vacía.")
+                    continue
+
+                password2 = pwinput.pwinput(prompt="Confirme el Password: ") 
+
+                # Si contraseña esta vacia
+                if not password2.strip():
+                    print("La contraseña no puede estar vacía.")
+                    continue
+
+                # Validar que la contraseña sea válida y coincida
+                if password != password2:
+                    print("Las contraseñas no coinciden.")
+                    
+                    continue
+                else:
+                    break
+                    
+
+            while True:
+                direccion = input("Direccion: ")
+                if direccion.strip():
+                    break
+                else:
+                    print("La direccion no puede estar vacia")
             while True:
                 telefono = input("Telefono 9XXXXXXXX: ")
                 telefono = telefono.strip()
                 try:
                     if telefono.startswith("9"):
-                        telefono = int(telefono)
-                        break
+                        if len(telefono) == 9:
+                            telefono = int(telefono)
+                            break
+                        else:
+                            print("No tiene la cantidad de numeros correspondiente a un telefono")
                     else:
                         print("Usted no ingreso el formato correcto de un telefono")
                 except:
@@ -202,9 +256,37 @@ class MenuAdministrarEmpleados:
                     break
                 except:
                     print("Usted no igreso una fecha")
-            salario = input("Salario: ")
-            departamento_id = input("Departamento ID (0 para 'No asignado'): ")
-            rol = input("Rol: ")
+            while True:
+                salario = input("Salario: ")
+                try:
+                    if salario.strip():
+                        salario = float(salario)
+                        break
+                    else:
+                        print("El salario no puede estar vacio")
+                except:
+                    print("Esto no es un digito")
+
+            while True:
+                departamento_id = input("Departamento ID (0 para 'No asignado'): ")
+                try:
+                    if departamento_id.strip():
+                        if departamento_id.isdigit():
+                            break
+                    else:
+                        print("Ingrese una opcion valida")
+                except:
+                    print("Usted no agrego un ID valido")
+
+            while True:
+                rol = input("Rol: ")
+                if rol.strip():
+                    if rol == "admin" or rol == "usuario" or rol == "gerente":
+                        break
+                    else:
+                        print("Usted no ingreso un rol existente")
+                else:
+                    print("Usted debe ingresar un rol")
 
             # Crear el objeto Empleado
             empleado = Empleado(rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol)
@@ -232,14 +314,70 @@ class MenuAdministrarEmpleados:
             if empleado:
                 print("\nEmpleado encontrado\n")
 
-                # Mostrar los datos del empleado
-                new_rut = input(f"RUT ({empleado[1]}): ") or empleado[1]
-                new_username = input(f"Username ({empleado[2]}): ") or empleado[2]
-                new_password = pwinput.pwinput(prompt="Password: ") 
+                while True: # Ingreso del nuevo rut en caso que lo requiera
+                    # Mostrar los datos del empleado
+                    new_rut = input(f"RUT ({empleado[1]}): ") or empleado[1]
+
+                    if "-" not in new_rut:
+                        print("No tiene digito verificador")
+                    partes = new_rut.split("-")
+                    
+                    if len(partes) != 2:
+                        print("No contiene un digito verificador")
+                    
+                    try:
+                        numero, digito_verificador = partes
+                        # Verificar que la longitud del número esté entre 7 y 8 y que contenga solo dígitos
+                        if not (7 <= len(numero) <= 8 and numero.isdigit()):
+                            print("El rut no tiene el largo requerido\n 7 u 8 digitos sin contar el digito verificador separado por un '-'")
+                            continue
+                        # Validar que el dígito verificador tenga exactamente un carácter y sea un número del 0 al 9 o 'k'
+                        if len(digito_verificador) != 1 or not (digito_verificador.isdigit() or digito_verificador.lower() == 'k'):
+                            print("no es un digito verificador valido")
+                            continue
+                    except:
+                        print()
+                        continue
+                    if rut.strip():
+                        break
+                    else:
+                        print("El rut no puede estar vacio")
+
+
+                while True: # ingreso nuevo username si requiere cambiarse
+                    new_username = input(f"Username ({empleado[2]}): ") or empleado[2]
+                    if new_username.strip():
+                        break
+                    else:
+                        print("El username no puede estar vacio")
+
+                new_password = pwinput.pwinput(prompt="Password: ")
                 # Encriptar la contraseña
                 hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt(rounds=10)).decode('utf-8')
-                new_direccion = input(f"Direccion ({empleado[4]}): ") or empleado[4]
-                new_telefono = input(f"Telefono ({empleado[5]}): ") or empleado[5]
+
+                while True: # Ingreso de nueva direccion en caso de que lo requiera
+                    new_direccion = input(f"Direccion ({empleado[4]}): ") or empleado[4]
+                    if new_direccion.strip():
+                        break
+                    else:
+                        print("La direccion no puede estar vacia")
+
+                while True: # Ingreso de un nuevo telefono en caso que lo requiera
+                    new_telefono = input(f"Telefono ({empleado[5]}): ") or empleado[5]
+                    new_telefono = new_telefono.strip()
+                    try:
+                        if new_telefono.startswith("9"):
+
+                            if len(new_telefono) == 9:
+                                new_telefono = int(new_telefono)
+                                break
+                            else:
+                                print("No tiene la cantidad de numeros correspondiente a un telefono")
+                        else:
+                            print("Usted no ingreso el formato correcto de un telefono")
+                    except:
+                            print("Usted no ingreso el formato correcto de un telefono")
+
                 while True:
                     new_fecha_contrato = input(f"Fecha Inicio Contrato ({empleado[6]}): ") or empleado[6]
                     try:
@@ -247,13 +385,36 @@ class MenuAdministrarEmpleados:
                         break
                     except:
                         print("No ingreso el formato de fecha")
-                new_salario = input(f"Salario ({empleado[7]}): ") or empleado[7]
+
+                while True:
+                    new_salario = input(f"Salario ({empleado[7]}): ") or empleado[7]
+                    try:
+                        new_salario = str(new_salario)
+                        if new_salario.strip():
+                            new_salario = float(new_salario)
+                            break
+                        else:
+                            print("El salario no puede estar vacio")
+                    except:
+                        print("Esto no es un digito")
+
+
                 new_departamento_id = input(f"Departamento ID ({empleado[8]}): ") or empleado[8]
-                new_rol = input(f"Rol ({empleado[9]}): ") or empleado[9]
+
+
+                while True:
+                    new_rol = input(f"Rol (admin, gerente, usuario): ") or empleado[9]
+                    
+                    roles = ["admin", "usuario", "gerente"]
+
+                    if new_rol in roles:
+                        break
+                    else:
+                        print("Usted no ingreso un rol existente")
 
                 # Crear el objeto Empleado
                 empleado = Empleado(new_rut, new_username, hashed_password, new_direccion, new_telefono, new_fecha_inicio_contrato, new_salario, new_departamento_id, new_rol)
-
+                
                 try:
                     # Actualizar el empleado en la base de datos
                     self.empleado_model.actualizar(empleado, rut)
@@ -268,7 +429,6 @@ class MenuAdministrarEmpleados:
                 pausar()
                 self.mostrar()
 
-        
         elif seleccion == "4":
             # Pedir RUT del empleado a eliminar
             limpiar_pantalla()
@@ -317,6 +477,11 @@ class MenuAdministrarDepartamentos:
             "2. Agregar Departamento",
             "3. Modificar Departamento",
             "4. Eliminar Departamento",
+            "5. Ver Empleados por Departamento",
+            "6. Asignar Empleados a Departamento",
+            "7. Modificar Empleados de Departamento",
+            "8. Eliminar Empleados de Departamento",
+            
             "S. Volver"
         ]
 
@@ -325,6 +490,7 @@ class MenuAdministrarDepartamentos:
 
         seleccion = input("\nSeleccione una opción: ").strip().lower()
 
+        # Ver Departamentos
         if seleccion == "1":
             limpiar_pantalla()
             print("--- Departamentos ---\n")
@@ -347,9 +513,7 @@ class MenuAdministrarDepartamentos:
 
             pausar()
             self.mostrar()
-
-
-            
+        # Agregar Departamento
         elif seleccion == "2":
             limpiar_pantalla()
             print("--- Agregar Departamento ---\n")
@@ -371,6 +535,7 @@ class MenuAdministrarDepartamentos:
             
             pausar()
             self.mostrar()
+        # Modificar Departamento
         elif seleccion == "3":
             limpiar_pantalla()
             print("--- Modificar Departamento ---\n")
@@ -404,7 +569,8 @@ class MenuAdministrarDepartamentos:
             else:
                 print("\nDepartamento no encontrado")
                 pausar()
-                self.mostrar()
+                self.mostrar()           
+        # Eliminar Departamento
         elif seleccion == "4":
             limpiar_pantalla()
             print("--- Eliminar Departamento ---\n")
@@ -432,6 +598,111 @@ class MenuAdministrarDepartamentos:
                 print("\nDepartamento no encontrado")
                 pausar()
                 self.mostrar()
+        
+        # Ver Empleados por Departamento
+        elif seleccion == "5":
+            limpiar_pantalla()
+            print("--- Empleados por Departamento ---\n")
+
+            departamento_id = input("Ingrese el ID del departamento: ")
+
+            # Buscar el departamento en la base de datos
+            departamento_model = DepartamentoModel()
+            departamento = departamento_model.existe(departamento_id)
+
+            if departamento:
+                print("\nDepartamento encontrado\n")
+
+                empleados = departamento_model.listar_empleados(departamento_id)
+
+                # Crear una tabla
+                table = PrettyTable()
+
+                # Definir los nombres de las columnas
+                table.field_names = ["ID", "RUT", "Username", "Direccion", "Telefono", "Fecha Inicio Contrato", "Salario", "Rol"]
+
+                # Agregar filas a la tabla
+                for empleado in empleados:
+                    table.add_row([empleado[0], empleado[1], empleado[2], empleado[4], empleado[5], empleado[6], empleado[7], empleado[9]])
+
+                # Imprimir la tabla
+                print(table)
+                pausar()
+                self.mostrar()
+            else:
+                print("\nDepartamento no encontrado")
+                pausar()
+                self.mostrar()
+        
+        # Asignar Empleados a Departamento
+        elif seleccion == "6":
+            limpiar_pantalla()
+            print("--- Asignar Empleados a Departamento ---\n")
+
+            empleado_id = input("ID Empleado: ")
+            departamento_id = input("ID Departamento: ")
+
+            # a INT
+            empleado_id = int(empleado_id)
+            departamento_id = int(departamento_id)
+
+            try:
+                # Asignar el empleado al departamento
+                departamento_model = DepartamentoModel()
+                if departamento_model.asignar_empleado(empleado_id, departamento_id):
+                    print("\nEmpleado asignado exitosamente")
+                else:
+                    print("\nEmpleado ya esta asignado a un departamento")
+                    
+            except Exception as e:
+                print(f"\nError al asignar el empleado: {str(e)}")
+            
+            pausar()
+            self.mostrar()
+        
+        # Modificar Empleados de Departamento
+        elif seleccion == "7":
+            limpiar_pantalla()
+            print("--- Modificar Empleados de Departamento ---\n")
+
+            empleado_id = input("ID Empleado: ")
+            departamento_id = input("ID Departamento al que se asignara: ")
+
+            # a INT
+            empleado_id = int(empleado_id)
+            departamento_id = int(departamento_id)
+
+            try:
+                # Modificar el empleado del departamento
+                departamento_model = DepartamentoModel()
+                departamento_model.modificar_empleado(empleado_id, departamento_id)
+                print("\nEmpleado modificado exitosamente")
+            except Exception as e:
+                print(f"\nError al modificar el empleado: {str(e)}")
+            
+            pausar()
+            self.mostrar()
+        
+        # Eliminar Empleados de Departamento
+        elif seleccion == "8":
+            limpiar_pantalla()
+            print("--- Eliminar Empleados de Departamento ---\n")
+
+            empleado_id = input("ID Empleado: ")
+            
+
+            try:
+                # Eliminar el empleado del departamento
+                departamento_model = DepartamentoModel()
+                departamento_model.eliminar_empleado(empleado_id)
+                print("\nEmpleado eliminado exitosamente")
+
+            except Exception as e:
+                print(f"\nError al eliminar el empleado: {str(e)}")
+            
+            pausar()
+            self.mostrar()
+
         elif seleccion == "s":
             return
         else:
@@ -487,8 +758,23 @@ class MenuAdministrarProyectos:
 
             nombre = input("Nombre: ")
             descripcion = input("Descripcion: ")
-            fecha_inicio = input("Fecha Inicio YYYY-MM-DD: ")
-            fecha_fin = input("Fecha Fin YYYY-MM-DD: ")
+            while True:
+                try:
+                    fecha_inicio = input("Fecha Inicio DD-MM-YYYY: ")
+                    fecha_inicio = datetime.datetime.strptime(fecha_inicio, '%d-%m-%Y')
+                    fecha_fin = input("Fecha Fin DD-MM-YYYY: ")
+                    fecha_fin = datetime.datetime.strptime(fecha_fin, '%d-%m-%Y')
+                except:
+                    print("No ingreso el formato de fecha solicitado")
+                
+
+                diferencia_fechas = fecha_fin - fecha_inicio
+                diferencia_fechas = diferencia_fechas.days
+                
+                if diferencia_fechas > 0:
+                    break
+                else:
+                    print("No puede ser la fecha de termino anterior a la de inicio")
 
             # Crear el objeto Proyecto
             proyecto = Proyecto(nombre, descripcion, fecha_inicio, fecha_fin)
@@ -716,7 +1002,161 @@ class MenuAdministrarRegistros:
 
         elif seleccion == "s":
             return
-         
+
+# Clase de Menú de Informes
+class MenuAdministrarInformes:
+    """
+        CREATE TABLE informe (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        titulo VARCHAR(100) NOT NULL,
+        descripcion TEXT NOT NULL,
+        fecha DATE NOT NULL,
+        empleado_id INT NOT NULL,
+        proyecto_id INT NOT NULL,
+        FOREIGN KEY (empleado_id) REFERENCES empleados(id) ON DELETE CASCADE,
+        FOREIGN KEY (proyecto_id) REFERENCES proyectos(id) ON DELETE CASCADE,
+        INDEX (empleado_id),
+        INDEX (proyecto_id)
+        );
+    """
+    def mostrar(self):
+        limpiar_pantalla()
+        print("--- Menú de Informes ---\n")
+
+        opciones = [
+            "1. Ver Informes",
+            "2. Agregar Informe",
+            "3. Modificar Informe",
+            "4. Eliminar Informe",
+            "S. Volver"
+        ]
+
+        for opcion in opciones:
+            print(opcion)
+
+        seleccion = input("\nSeleccione una opción: ").strip().lower()
+
+        if seleccion == "1":
+            limpiar_pantalla()
+            print("--- Informes ---\n")
+            
+            informe_model = InformeModel()
+            informes = informe_model.listar()
+
+            # Crear una tabla
+            table = PrettyTable()
+
+            # Definir los nombres de las columnas
+            table.field_names = ["ID", "Username", "Nombre Proyecto", "Titulo", "Descripcion", "Fecha"]
+
+            # Agregar filas a la tabla
+            for informe in informes:
+                table.add_row([informe[0], informe[1], informe[2], informe[4], informe[5], informe[3]])
+
+            # Imprimir la tabla
+            print(table)
+
+            pausar()
+            self.mostrar()
+
+        elif seleccion == "2":
+            limpiar_pantalla()
+            print("--- Agregar Informe ---\n")
+
+            titulo = input("Titulo: ")
+            descripcion = input("Descripcion: ")
+            while True:
+                try:
+                    fecha = input("Fecha YYYY-MM-DD: ")
+                    fecha = datetime.datetime.strptime(fecha, '%Y-%m-%d')
+                    break
+                except:
+                    print("No ingreso el formato de fecha")
+
+            empleado_id = input("ID Empleado: ")
+            proyecto_id = input("ID Proyecto: ")
+
+            # Crear el objeto Informe
+            informe = Informe(titulo, descripcion, fecha, empleado_id, proyecto_id)
+
+            try:
+                # Guardar el informe en la base de datos
+                informe_model = InformeModel()
+                informe_model.crear(informe)
+                print("\nInforme creado exitosamente")
+
+            except Exception as e:
+                print(f"\nError al crear el informe: {str(e)}")
+            
+            pausar()
+            self.mostrar()
+
+        elif seleccion == "3":
+            limpiar_pantalla()
+            print("--- Modificar Informe ---\n")
+
+            id = input("Ingrese el ID del informe a modificar: ")
+
+            # Buscar el informe en la base de datos
+            informe_model = InformeModel()
+            informe = informe_model.existe(id)
+
+            if informe:
+                print("\nInforme encontrado\n")
+
+                # Mostrar los datos del informe
+                new_titulo = input(f"Titulo ({informe[1]}): ") or informe[1]
+                new_descripcion = input(f"Descripcion ({informe[2]}): ") or informe[2]
+                new_fecha = input(f"Fecha ({informe[3]}): ") or informe[3]
+                new_empleado_id = input(f"ID Empleado ({informe[4]}): ") or informe[4]
+                new_proyecto_id = input(f"ID Proyecto ({informe[5]}): ") or informe[5]
+
+                # Crear el objeto Informe
+                informe = Informe(new_titulo, new_descripcion, new_fecha, new_empleado_id, new_proyecto_id)
+
+                try:
+                    # Actualizar el informe en la base de datos
+                    informe_model.actualizar(informe, id)
+                    print("\nInforme actualizado exitosamente")
+                    pausar()
+                    self.mostrar()
+
+                except Exception as e:
+                    print(f"\nError al actualizar el informe: {str(e)}")
+
+            else:
+                print("\nInforme no encontrado")
+                pausar()
+                self.mostrar()
+        
+        elif seleccion == "4":
+            limpiar_pantalla()
+            print("--- Eliminar Informe ---\n")
+
+            id = input("Ingrese el ID del informe a eliminar: ")
+
+            # Buscar el informe en la base de datos
+            informe_model = InformeModel()
+            informe = informe_model.existe(id)
+
+            if informe:
+                print("\nInforme encontrado\n")
+
+                try:
+                    # Eliminar el informe de la base de datos
+                    informe_model.eliminar(id)
+                    print("\nInforme eliminado exitosamente")
+                    pausar()
+                    self.mostrar()
+                except Exception as e:
+                    print(f"\nError al eliminar el informe: {str(e)}")
+                    pausar()
+                    self.mostrar()
+            else:
+                print("\nInforme no encontrado")
+                pausar()
+                self.mostrar()
+        
 # Clase de Menú de Gerente
 class MenuGerente:
     def __init__(self, usuario):
