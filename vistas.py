@@ -29,8 +29,10 @@ class MenuPrincipal:
                 time.sleep(1)
                 user = auth.iniciar_sesion(usuario, password)
 
+                print(user)
+                input()
                 if user[2] == "admin":
-                    menu = MenuAdmin(user[1])
+                    menu = MenuAdmin(user[1], user[2])
                     menu.mostrar()
                 elif user[2] == "gerente":
                     menu = MenuGerente(user[1])
@@ -49,9 +51,12 @@ class MenuPrincipal:
 
 # Clase de Menú de Administrador
 class MenuAdmin:
-    def __init__(self, usuario):
+    def __init__(self, usuario, rol):
         self.usuario = usuario.capitalize()
+        self.rol = rol
         print(f"{self.usuario}")
+        print(f"{self.rol}")
+        input()
     def mostrar(self):
         while True:
             limpiar_pantalla()

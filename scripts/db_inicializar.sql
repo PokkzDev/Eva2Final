@@ -108,7 +108,7 @@ VALUES
     ('12345678-12', 'd.mendez', '$2b$12$WC3gQOL3y.O2IoOPAptkjO9THiTnzDCbstntMy7xQG.p8zNsvRK7O', 'Calle Falsa 123', '123456789', '2021-01-01', 1000000, NULL, 'admin'),
     ('87654321-9', 'usuario', '$2b$10$Zyk/rZJobzzf/iOKoyMgu.5SjVpmVsAtK0cMNHm0NISCjxk3BCu3K', 'Calle Falsa 321', '987654321', '2021-01-01', 500000, NULL, 'usuario'),
     ('123123123', 'b.altamirano', '$2b$10$sIkhFShlAKlg.jDD.fVnT.ghVgG3p1trd7ReJZGphyJxMbG4ATrhK', 'Calle Falsa 123', '123456789', '2021-01-01', 1000000, NULL, 'admin'),
-    ('k-k', 'gerente', '$2b$10$D0jX/hLNTrkIKuwnEKbYauJfqtrNsb42Ucysp3dHTBF5a.Y94BwEC', 'Calle Falsa 123', '987654321', '2023-01-01', 700000, NULL, 'gerente');
+    ('k-k', 'gerente', '$2b$10$Zyk/rZJobzzf/iOKoyMgu.5SjVpmVsAtK0cMNHm0NISCjxk3BCu3K', 'Calle Falsa 123', '987654321', '2023-01-01', 700000, NULL, 'gerente');
 
 -- Insert multiple departments
 INSERT INTO departamento (nombre, descripcion, id_gerente)
