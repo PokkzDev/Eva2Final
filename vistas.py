@@ -54,9 +54,7 @@ class MenuAdmin:
     def __init__(self, usuario, rol):
         self.usuario = usuario.capitalize()
         self.rol = rol
-        print(f"{self.usuario}")
-        print(f"{self.rol}")
-        input()
+      
     def mostrar(self):
         while True:
             limpiar_pantalla()
@@ -156,6 +154,7 @@ class MenuAdministrarEmpleados:
             limpiar_pantalla()
             eleccion = input("¿Sabe los ID de los departamentos? s/n: ").lower().strip()
 
+            
             if eleccion != "s":
                 departamento_model = DepartamentoModel()
                 departamentos = departamento_model.listar()
@@ -173,6 +172,11 @@ class MenuAdministrarEmpleados:
                         table.add_row([departamento[0], departamento[1], departamento[2]])
                     
                     print(table)
+
+                else:
+                    print("No hay departamentos registrados")
+                    time.sleep(1)
+                    self.mostrar()
 
 
             print("\n--- Agregar Empleado ---\n")
@@ -1250,6 +1254,6 @@ def en_desarrollo():
 # Si el archivo es ejecutado directamente se ejecuta el menú principal
 if __name__ == '__main__':
     # bypass para no tener que logearse
-    menu = MenuAdmin("admin")
+    menu = MenuAdmin("admin", "admin")
     menu.mostrar()
 
