@@ -1209,9 +1209,11 @@ class MenuGerente:
                     menu = MenuAdministrarProyectos()
                     menu.mostrar()
                 elif seleccion_menu == "3":
-                    en_desarrollo()
+                    menu = MenuGestionarRegistros(self.usuario, self.departamento_id, self.rol)
+                    menu.mostrar()
                 elif seleccion_menu == "4":
-                    en_desarrollo()
+                    menu = MenuAdministrarInformes()
+                    menu.mostrar()
                 elif seleccion_menu == "5":
                     en_desarrollo()
                 elif seleccion_menu == "s":
@@ -1389,6 +1391,7 @@ class MenuGerenteEmpleadosDepartamentos:
             time.sleep(1)
             self.mostrar()
 
+# Menu de Gerente para Gestionar Los registros de su tiempo
 class MenuGestionarRegistros:
     def __init__(self, usuario, departamento_id, rol):
         self.usuario = usuario
@@ -1404,7 +1407,6 @@ class MenuGestionarRegistros:
             "1. Ver Registros",
             "2. Agregar Registro",
             "3. Modificar Registro",
-            "4. Eliminar Registro",
             "S. Volver"
         ]
 
@@ -1443,9 +1445,7 @@ class MenuGestionarRegistros:
         elif seleccion == "2":
             limpiar_pantalla()
             print("--- Agregar Registro ---\n")
-            pausar()
             empleados = self.empleado_model.listar()
-            pausar()
             table = PrettyTable()
             usuario = self.usuario
 
@@ -1456,13 +1456,8 @@ class MenuGestionarRegistros:
                 if empleado[2] == usuario:
                     table.add_row([empleado[0], empleado[1], empleado[2], empleado[4], empleado[5], empleado[6], empleado[7], empleado[9]])
                     empleado_propio = empleado[0]
-            print(table)
-            pausar()
 
-            
             empleado_id = empleado_propio
-            print(empleado_id)
-            print(type(empleado_id))
             proyecto_id = input("ID Proyecto: ")
             
             while True:
@@ -1504,7 +1499,7 @@ class MenuGestionarRegistros:
                 print("\nRegistro encontrado\n")
 
                 # Mostrar los datos del registro
-                new_empleado_id = input(f"ID Empleado ({registro[1]}): ") or registro[1]
+                new_empleado_id = registro[1]
                 new_proyecto_id = input(f"ID Proyecto ({registro[2]}): ") or registro[2]
                 new_fecha = input(f"Fecha ({registro[3]}): ") or registro[3]
                 new_horas_trabajadas = input(f"Horas Trabajadas ({registro[4]}): ") or registro[4]
@@ -1527,36 +1522,11 @@ class MenuGestionarRegistros:
                 print("\nRegistro no encontrado")
                 pausar()
                 self.mostrar()
-        elif seleccion == "4":
-            limpiar_pantalla()
-            print("--- Eliminar Registro ---\n")
-
-            id = input("Ingrese el ID del registro a eliminar: ")
-
-            # Buscar el registro en la base de datos
-            registro_model = RegistroModel()
-            registro = registro_model.existe(id)
-
-            if registro:
-                print("\nRegistro encontrado\n")
-
-                try:
-                    # Eliminar el registro de la base de datos
-                    registro_model.eliminar(id)
-                    print("\nRegistro eliminado exitosamente")
-                    pausar()
-                    self.mostrar()
-                except Exception as e:
-                    print(f"\nError al eliminar el registro: {str(e)}")
-                    pausar()
-                    self.mostrar()
-            else:
-                print("\nRegistro no encontrado")
-                pausar()
-                self.mostrar()
 
         elif seleccion == "s":
             return
+
+
 
 
 # Clase de Menú de Empleado
