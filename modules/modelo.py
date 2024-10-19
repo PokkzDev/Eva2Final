@@ -29,7 +29,7 @@ class EmpleadoModel:
         conexion = db.iniciar_conexion()
         cursor = conexion.cursor()
 
-        cursor.execute("SELECT e.*, d.nombre FROM empleados e LEFT JOIN departamento d ON e.departamento_id=d.id")
+        cursor.execute("SELECT e.*, ed.departamento_id, d.nombre FROM empleados e LEFT JOIN empleados_departamento ed ON e.id = ed.empleado_id LEFT JOIN departamento d ON ed.departamento_id = d.id")
         empleados = cursor.fetchall()
 
         cursor.close()
@@ -37,14 +37,14 @@ class EmpleadoModel:
         # Formatear las fechas de 'YYYY-MM-DD' a 'DD-MM-YYYY'
         empleados_formateados = []
         for empleado in empleados:
-            (id, rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol, nombre_departamento) = empleado
+            (id, rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol, departamento_id, nombre_departamento) = empleado
 
             # Formatear la fecha si no es None
             if fecha_inicio_contrato:
                 fecha_inicio_contrato = fecha_inicio_contrato.strftime('%d-%m-%Y')
 
             # Crear una nueva tupla con las fechas formateadas
-            empleado_formateado = (id, rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol, nombre_departamento)
+            empleado_formateado = (id, rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol, departamento_id, nombre_departamento)
             empleados_formateados.append(empleado_formateado)
 
         return empleados_formateados
@@ -375,9 +375,20 @@ class ProyectoModel:
         proyectos = cursor.fetchall()
 
         cursor.close()
-        db.cerrar_conexion()  
+        db.cerrar_conexion()
 
-        return proyectos
+        proyectos_formateados = []
+        for proyecto in proyectos:
+            (id, nombre, descripcion, fecha_inicio, fecha_fin) = proyecto
+
+            if fecha_inicio or fecha_fin:
+                fecha_inicio = fecha_inicio.strftime('%d-%m-%Y')
+                fecha_fin = fecha_fin.strftime('%d-%m-%Y')
+
+            proyecto_formateado = (id, nombre, descripcion, fecha_inicio, fecha_fin)
+            proyectos_formateados.append(proyecto_formateado)
+
+        return proyectos_formateados
 
     def crear(self, proyecto: Proyecto):
         db = DB_Conn()
@@ -429,8 +440,16 @@ class ProyectoModel:
             proyecto = cursor.fetchone()
             cursor.close()
             db.cerrar_conexion()
-            
-            return proyecto
+            if proyecto:
+                (id, nombre, descripcion, fecha_inicio, fecha_fin) = proyecto
+
+                if fecha_inicio or fecha_fin:
+                    fecha_inicio = fecha_inicio.strftime('%d-%m-%Y')
+                    fecha_fin = fecha_fin.strftime('%d-%m-%Y')
+                
+                proyecto_formateado = (id, nombre, descripcion, fecha_inicio, fecha_fin)
+                
+            return proyecto_formateado
         except Exception as e:
             print(f"Error al buscar el proyecto: {str(e)}")
             return False

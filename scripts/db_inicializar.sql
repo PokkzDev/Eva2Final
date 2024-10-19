@@ -1,20 +1,20 @@
 -- Start transaction block (optional in phpMyAdmin, phpMyAdmin typically handles transactions automatically)
 START TRANSACTION;
-
+ 
 -- Drop database and user if they already exist
 DROP DATABASE IF EXISTS lc_pa_ba_eva2_2024;
 DROP USER IF EXISTS 'lc_pa_ba_eva2_2024'@'localhost';
-
+ 
 -- Create new database and user
 CREATE DATABASE lc_pa_ba_eva2_2024;
 CREATE USER 'lc_pa_ba_eva2_2024'@'localhost' IDENTIFIED BY 'lc_pa_ba_eva2_2024';
-
+ 
 -- Grant permissions to the new user
 GRANT SELECT, INSERT, UPDATE, DELETE ON lc_pa_ba_eva2_2024.* TO 'lc_pa_ba_eva2_2024'@'localhost';
-
+ 
 -- Use the newly created database
 USE lc_pa_ba_eva2_2024;
-
+ 
 -- Create empleados table
 CREATE TABLE empleados (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -28,7 +28,7 @@ CREATE TABLE empleados (
     departamento_id INT,
     rol ENUM('admin', 'gerente', 'usuario') NOT NULL
 );
-
+ 
 -- Create departamento table
 CREATE TABLE departamento (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -38,7 +38,7 @@ CREATE TABLE departamento (
     INDEX (id_gerente),
     FOREIGN KEY (id_gerente) REFERENCES empleados(id) ON DELETE SET NULL
 );
-
+ 
 -- Create proyectos table
 CREATE TABLE proyectos (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -47,7 +47,7 @@ CREATE TABLE proyectos (
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE NOT NULL
 );
-
+ 
 -- Create empleados_departamento junction table
 CREATE TABLE empleados_departamento (
     empleado_id INT NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE empleados_departamento (
     FOREIGN KEY (empleado_id) REFERENCES empleados(id) ON DELETE CASCADE,
     FOREIGN KEY (departamento_id) REFERENCES departamento(id) ON DELETE CASCADE
 );
-
+ 
 -- Create empleado_proyecto junction table
 CREATE TABLE empleado_proyecto (
     empleado_id INT NOT NULL,
@@ -67,12 +67,12 @@ CREATE TABLE empleado_proyecto (
     INDEX (empleado_id),
     INDEX (proyecto_id)
 );
-
+ 
 -- Add foreign key constraint to empleados table for departamento_id
 ALTER TABLE empleados
 ADD CONSTRAINT fk_departamento
 FOREIGN KEY (departamento_id) REFERENCES departamento(id) ON DELETE SET NULL;
-
+ 
 -- Create informe table
 CREATE TABLE informe (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -86,7 +86,7 @@ CREATE TABLE informe (
     INDEX (empleado_id),
     INDEX (proyecto_id)
 );
-
+ 
 -- Create registro_de_tiempo table
 CREATE TABLE registro_de_tiempo (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -100,7 +100,7 @@ CREATE TABLE registro_de_tiempo (
     INDEX (empleado_id),
     INDEX (proyecto_id)
 );
-
+ 
 -- Insert multiple employees
 INSERT INTO empleados (rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol)
 VALUES 
@@ -116,14 +116,14 @@ VALUES
     ('Desarrollo', 'Departamento de desarrollo de software', 5),
     ('Ventas', 'Departamento de ventas', NULL),
     ('Marketing', 'Departamento de marketing', NULL);
-
+ 
 -- Insert multiple projects
 INSERT INTO proyectos (nombre, descripcion, fecha_inicio, fecha_fin)
 VALUES 
     ('Proyecto 1', 'Descripción del proyecto 1', '2021-01-01', '2021-12-31'),
     ('Proyecto 2', 'Descripción del proyecto 2', '2021-01-01', '2021-12-31'),
     ('Proyecto 3', 'Descripción del proyecto 3', '2021-01-01', '2021-12-31');
-
+ 
 -- Insert multiple employees into departments
 INSERT INTO empleados_departamento (empleado_id, departamento_id)
 VALUES 
@@ -132,7 +132,7 @@ VALUES
     (3, 2),
     (4, 3),
     (5, 1);
-
+ 
 -- Insert multiple employees into projects
 INSERT INTO empleado_proyecto (empleado_id, proyecto_id)
 VALUES 
@@ -141,7 +141,7 @@ VALUES
     (3, 2),
     (4, 3),
     (5, 1);
-
+ 
 -- Insert multiple reports
 INSERT INTO informe (titulo, descripcion, fecha, empleado_id, proyecto_id)
 VALUES 
@@ -150,7 +150,7 @@ VALUES
     ('Informe 3', 'Descripción del informe 3', '2021-01-01', 3, 2),
     ('Informe 4', 'Descripción del informe 4', '2021-01-01', 4, 3),
     ('Informe 5', 'Descripción del informe 5', '2021-01-01', 5, 1);
-
+ 
 -- Insert multiple time records
 INSERT INTO registro_de_tiempo (empleado_id, proyecto_id, fecha, horas_trabajadas, descripcion_tareas)
 VALUES 
@@ -159,9 +159,10 @@ VALUES
     (3, 2, '2021-01-01', 8, 'Descripción de tareas 3'),
     (4, 3, '2021-01-01', 8, 'Descripción de tareas 4'),
     (5, 1, '2021-01-01', 8, 'Descripción de tareas 5');
-
+ 
 -- Reload privileges to ensure the new user and permissions are applied
 FLUSH PRIVILEGES;
-
+ 
 -- Commit transaction (optional in phpMyAdmin, depends on its configuration)
 COMMIT;
+ 
