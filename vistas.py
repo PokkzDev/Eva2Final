@@ -32,10 +32,8 @@ class MenuPrincipal:
                 if user[2] == "admin":
                     menu = MenuAdmin(user[1])
                     menu.mostrar()
-                elif user[2] == "gerente":
-                    
-                    menu = MenuGerente(user[1])
-                    input()
+                elif user[3] == "gerente":
+                    menu = MenuGerente(user[1], user[2], user[3])
                     menu.mostrar()
                 else:
                     menu = MenuEmpleado(user[1])
@@ -767,17 +765,16 @@ class MenuAdministrarProyectos:
                     fecha_inicio = datetime.datetime.strptime(fecha_inicio, '%d-%m-%Y')
                     fecha_fin = input("Fecha Fin DD-MM-YYYY: ")
                     fecha_fin = datetime.datetime.strptime(fecha_fin, '%d-%m-%Y')
+                    diferencia_fechas = fecha_fin - fecha_inicio
+                    diferencia_fechas = diferencia_fechas.days
+                    
+                    if diferencia_fechas > 0:
+                        break
+                    else:
+                        print("No puede ser la fecha de termino anterior a la de inicio")
                 except:
                     print("No ingreso el formato de fecha solicitado")
                 
-
-                diferencia_fechas = fecha_fin - fecha_inicio
-                diferencia_fechas = diferencia_fechas.days
-                
-                if diferencia_fechas > 0:
-                    break
-                else:
-                    print("No puede ser la fecha de termino anterior a la de inicio")
 
             # Crear el objeto Proyecto
             proyecto = Proyecto(nombre, descripcion, fecha_inicio, fecha_fin)
@@ -809,8 +806,27 @@ class MenuAdministrarProyectos:
                 # Mostrar los datos del proyecto
                 new_nombre = input(f"Nombre ({proyecto[1]}): ") or proyecto[1]
                 new_descripcion = input(f"Descripcion ({proyecto[2]}): ") or proyecto[2]
-                new_fecha_inicio = input(f"Fecha Inicio ({proyecto[3]}): ") or proyecto[3]
-                new_fecha_fin = input(f"Fecha Fin ({proyecto[4]}): ") or proyecto[4]
+                while True:
+                    new_fecha_inicio = input(f"Fecha Inicio ({proyecto[3]}): ") or proyecto[3]
+                    try:
+                        new_fecha_inicio = datetime.datetime.strptime(new_fecha_inicio, '%d-%m-%Y')
+
+                    except:
+                        print("No ingreso el formato de fecha")
+
+                    new_fecha_fin = input(f"Fecha Fin ({proyecto[4]}): ") or proyecto[4]
+                    try:
+                        new_fecha_fin = datetime.datetime.strptime(new_fecha_fin, '%d-%m-%Y')
+                        diferencia_fechas = new_fecha_fin - new_fecha_inicio
+                        diferencia_fechas = diferencia_fechas.days
+                
+                        if diferencia_fechas > 0:
+                            break
+                        else:
+                            print("No puede ser la fecha de termino anterior a la de inicio")
+                    except:
+                        print("No ingreso el formato de fecha")
+
 
                 # Crear el objeto Proyecto
                 proyecto = Proyecto(new_nombre, new_descripcion, new_fecha_inicio, new_fecha_fin)
@@ -1162,22 +1178,21 @@ class MenuAdministrarInformes:
         
 # Clase de Menú de Gerente
 class MenuGerente:
-    def __init__(self, usuario, rol):
+    def __init__(self, usuario, departamento_id, rol):
         self.usuario = usuario
+        self.departamento_id = departamento_id
         self.rol = rol
 
     def mostrar(self):
         while True:
             limpiar_pantalla()
-            print(self.rol)
             print("--- Menú de Gerente ---\n")
 
             opciones = [
-                "1. Mostrar Empleados en Departamento designado", # Gestionar empleados en departamentos
-                "2. Administrar Empleados a Departamentos",
-                "3. Administrar Proyectos",
-                "4. Registrar horario",
-                "5. Administrar informes"
+                "1. Gestionar empleados en departamentos designado",
+                "2. Administrar Proyectos",
+                "3. Registrar horario",
+                "4. Administrar informes",
                 "S. Salir"
             ]
 
@@ -1188,9 +1203,11 @@ class MenuGerente:
                 seleccion_menu = input("\nSeleccione una opción: ").strip().lower()
 
                 if seleccion_menu == "1":
-                    MenuGerenteEmpleadosDepartamentos()
+                    menu = MenuGerenteEmpleadosDepartamentos(self.usuario, self.departamento_id, self.rol)
+                    menu.mostrar()
                 elif seleccion_menu == "2":
-                    en_desarrollo()
+                    menu = MenuAdministrarProyectos()
+                    menu.mostrar()
                 elif seleccion_menu == "3":
                     en_desarrollo()
                 elif seleccion_menu == "4":
@@ -1209,11 +1226,17 @@ class MenuGerente:
                 time.sleep(1)
                 self.mostrar()
 
+# Menu de gerente para Administrar Empleados en su departamento
 class MenuGerenteEmpleadosDepartamentos:
-    def mostrar(self, usuario, rol):
-        limpiar_pantalla()
+    def __init__(self, usuario, departamento_id, rol):
         self.usuario = usuario
-        
+        self.departamento_id = departamento_id
+        self.rol = rol
+        self.empleado_model = EmpleadoModel()
+    
+    def mostrar(self):
+        limpiar_pantalla()
+
         print("--- Menú de Gestionar Empleados en Departamento asignado ---\n")
 
         opciones = [
@@ -1235,7 +1258,7 @@ class MenuGerenteEmpleadosDepartamentos:
             limpiar_pantalla()
             print("--- Empleados por Departamento ---\n")
 
-            departamento_id = self.usuario
+            departamento_id = self.departamento_id
 
             # Buscar el departamento en la base de datos
             departamento_model = DepartamentoModel()
@@ -1269,55 +1292,80 @@ class MenuGerenteEmpleadosDepartamentos:
         elif seleccion == "2":
             limpiar_pantalla()
             print("--- Asignar Empleados a Departamento ---\n")
+            empleados = self.empleado_model.listar()
+            print("\n--- Empleados ---\n")
 
-            empleado_id = input("ID Empleado: ")
-            departamento_id = input("ID Departamento: ")
-
-            # a INT
-            empleado_id = int(empleado_id)
-            departamento_id = int(departamento_id)
-
-            try:
-                # Asignar el empleado al departamento
-                departamento_model = DepartamentoModel()
-                if departamento_model.asignar_empleado(empleado_id, departamento_id):
-                    print("\nEmpleado asignado exitosamente")
-                else:
-                    print("\nEmpleado ya esta asignado a un departamento")
-                    
-            except Exception as e:
-                print(f"\nError al asignar el empleado: {str(e)}")
+            # Crear una tabla
+            table = PrettyTable()
+            empleados_desasignados = []
             
+            # Definir los nombres de las columnas
+            table.field_names = ["ID", "Username", "ID Departamento", "Rol"]
+
+            # Agregar filas a la tabla
+            for empleado in empleados:
+                if empleado[10] == None and empleado[9] != "gerente" and empleado[9] != "admin":
+                    table.add_row([empleado[0], empleado[2], empleado[10], empleado[9]])
+                    empleados_desasignados.append(empleado[0])
+
+
+            # Imprimir la tabla
+            print(table)
+
+            while True:
+
+                empleado_id = input("ID Empleado: ")
+                departamento_id = self.departamento_id
+
+                # a INT
+                empleado_id = int(empleado_id)
+                departamento_id = int(departamento_id)
+
+                try:
+                    if empleado_id not in empleados_desasignados:
+                        print("Empleado ya esta asignado a un departamento")
+                    else:
+                        # Asignar el empleado al departamento
+                        departamento_model = DepartamentoModel()
+                        if departamento_model.asignar_empleado(empleado_id, departamento_id):
+                            print("\nEmpleado asignado exitosamente")
+                            break
+                        else:
+                            print("\nEmpleado ya esta asignado a un departamento")
+                            break
+                    
+                except Exception as e:
+                    print(f"\nError al asignar el empleado: {str(e)}")
+                
             pausar()
             self.mostrar()
-        
-        # Modificar Empleados de Departamento
+
+
+
+        # Eliminar Empleados de Departamento
         elif seleccion == "3":
             limpiar_pantalla()
-            print("--- Modificar Empleados de Departamento ---\n")
-
-            empleado_id = input("ID Empleado: ")
-            departamento_id = input("ID Departamento al que se asignara: ")
-
-            # a INT
-            empleado_id = int(empleado_id)
-            departamento_id = int(departamento_id)
-
-            try:
-                # Modificar el empleado del departamento
-                departamento_model = DepartamentoModel()
-                departamento_model.modificar_empleado(empleado_id, departamento_id)
-                print("\nEmpleado modificado exitosamente")
-            except Exception as e:
-                print(f"\nError al modificar el empleado: {str(e)}")
-            
-            pausar()
-            self.mostrar()
-        
-        # Eliminar Empleados de Departamento
-        elif seleccion == "8":
-            limpiar_pantalla()
             print("--- Eliminar Empleados de Departamento ---\n")
+            departamento_id = self.departamento_id
+            empleados = self.empleado_model.listar()
+            print("\n--- Empleados ---\n")
+
+            # Crear una tabla
+            table = PrettyTable()
+            empleados_desasignados = []
+            
+            # Definir los nombres de las columnas
+            table.field_names = ["ID", "Username", "ID Departamento", "Rol"]
+
+            # Agregar filas a la tabla
+            for empleado in empleados:
+                if empleado[10] == departamento_id and empleado[9] != "gerente":
+                    table.add_row([empleado[0], empleado[2], empleado[10], empleado[9]])
+                    empleados_desasignados.append(empleado[0])
+
+
+            # Imprimir la tabla
+            print(table)
 
             empleado_id = input("ID Empleado: ")
             
@@ -1340,6 +1388,176 @@ class MenuGerenteEmpleadosDepartamentos:
             print("Opción no válida")
             time.sleep(1)
             self.mostrar()
+
+class MenuGestionarRegistros:
+    def __init__(self, usuario, departamento_id, rol):
+        self.usuario = usuario
+        self.departamento_id = departamento_id
+        self.rol = rol
+        self.empleado_model = EmpleadoModel()
+
+    def mostrar(self):
+        limpiar_pantalla()
+        print("--- Menú de Administrar Registros ---\n")
+
+        opciones = [
+            "1. Ver Registros",
+            "2. Agregar Registro",
+            "3. Modificar Registro",
+            "4. Eliminar Registro",
+            "S. Volver"
+        ]
+
+        for opcion in opciones:
+            print(opcion)
+
+        seleccion = input("\nSeleccione una opción: ").strip().lower()
+
+        if seleccion == "1":
+            limpiar_pantalla()
+            print("--- Registros de Tiempo ---\n")
+
+            usuario = self.usuario
+            
+            registro_model = RegistroModel()
+            registros = registro_model.listar()
+
+            # Crear una tabla
+            table = PrettyTable()
+
+            # Definir los nombres de las columnas
+            table.field_names = ["ID", "Username", "Nombre Proyecto", "Fecha", "Horas Trabajadas", "Tarea Descrita"]
+            
+            # Transformar la fecha a un formato más legible
+            for registro in registros:
+                if registro[1] == usuario:
+                    fecha = registro[3].strftime("%d-%m-%Y")
+                    table.add_row([registro[0], registro[1], registro[2], fecha, registro[4], registro[5]])
+            
+            # Imprimir la tabla
+            print(table)
+
+            pausar()
+            self.mostrar()  
+
+        elif seleccion == "2":
+            limpiar_pantalla()
+            print("--- Agregar Registro ---\n")
+            pausar()
+            empleados = self.empleado_model.listar()
+            pausar()
+            table = PrettyTable()
+            usuario = self.usuario
+
+            # Definir los nombres de las columnas
+            table.field_names = ["ID", "RUT", "Username", "Direccion", "Telefono", "Fecha Inicio Contrato", "Salario", "Rol"]
+            
+            for empleado in empleados:
+                if empleado[2] == usuario:
+                    table.add_row([empleado[0], empleado[1], empleado[2], empleado[4], empleado[5], empleado[6], empleado[7], empleado[9]])
+                    empleado_propio = empleado[0]
+            print(table)
+            pausar()
+
+            
+            empleado_id = empleado_propio
+            print(empleado_id)
+            print(type(empleado_id))
+            proyecto_id = input("ID Proyecto: ")
+            
+            while True:
+                fecha = input("Fecha DD-MM-YYYY: ")
+                try:
+                    fecha = datetime.datetime.strptime(fecha, '%d-%m-%Y')
+                    break
+                except:
+                    print("No ingreso el formato de fecha")
+
+            horas_trabajadas = input("Horas Trabajadas: ")
+            descripcion_tareas = input("Descripcion de Tareas: ")
+
+            # Crear el objeto Registro
+            registro = Registro(empleado_id, proyecto_id, fecha, horas_trabajadas, descripcion_tareas)
+
+            try:
+                # Guardar el registro en la base de datos
+                registro_model = RegistroModel()
+                registro_model.crear(registro)
+                print("\nRegistro creado exitosamente")
+
+            except Exception as e:
+                print(f"\nError al crear el registro: {str(e)}")
+            
+            pausar()
+            self.mostrar()
+        elif seleccion == "3":
+            limpiar_pantalla()
+            print("--- Modificar Registro ---\n")
+
+            id = input("Ingrese el ID del registro a modificar: ")
+
+            # Buscar el registro en la base de datos
+            registro_model = RegistroModel()
+            registro = registro_model.existe(id)
+
+            if registro:
+                print("\nRegistro encontrado\n")
+
+                # Mostrar los datos del registro
+                new_empleado_id = input(f"ID Empleado ({registro[1]}): ") or registro[1]
+                new_proyecto_id = input(f"ID Proyecto ({registro[2]}): ") or registro[2]
+                new_fecha = input(f"Fecha ({registro[3]}): ") or registro[3]
+                new_horas_trabajadas = input(f"Horas Trabajadas ({registro[4]}): ") or registro[4]
+                new_descripcion_tareas = input(f"Descripcion de Tareas ({registro[5]}): ") or registro[5]
+
+                # Crear el objeto Registro
+                registro = Registro(new_empleado_id, new_proyecto_id, new_fecha, new_horas_trabajadas, new_descripcion_tareas)
+
+                try:
+                    # Actualizar el registro en la base de datos
+                    registro_model.actualizar(registro, id)
+                    print("\nRegistro actualizado exitosamente")
+                    pausar()
+                    self.mostrar()
+
+                except Exception as e:
+                    print(f"\nError al actualizar el registro: {str(e)}")
+
+            else:
+                print("\nRegistro no encontrado")
+                pausar()
+                self.mostrar()
+        elif seleccion == "4":
+            limpiar_pantalla()
+            print("--- Eliminar Registro ---\n")
+
+            id = input("Ingrese el ID del registro a eliminar: ")
+
+            # Buscar el registro en la base de datos
+            registro_model = RegistroModel()
+            registro = registro_model.existe(id)
+
+            if registro:
+                print("\nRegistro encontrado\n")
+
+                try:
+                    # Eliminar el registro de la base de datos
+                    registro_model.eliminar(id)
+                    print("\nRegistro eliminado exitosamente")
+                    pausar()
+                    self.mostrar()
+                except Exception as e:
+                    print(f"\nError al eliminar el registro: {str(e)}")
+                    pausar()
+                    self.mostrar()
+            else:
+                print("\nRegistro no encontrado")
+                pausar()
+                self.mostrar()
+
+        elif seleccion == "s":
+            return
+
 
 # Clase de Menú de Empleado
 class MenuEmpleado:
@@ -1388,6 +1606,7 @@ def en_desarrollo():
 # Si el archivo es ejecutado directamente se ejecuta el menú principal
 if __name__ == '__main__':
     # bypass para no tener que logearse
-    menu = MenuGerenteEmpleadosDepartamentos()
+    menu = MenuGerente("testu", 2, "gerente")
+    """menu = MenuGerenteEmpleadosDepartamentos("testu", 2, "gerente")"""
     menu.mostrar()
 
