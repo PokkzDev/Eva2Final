@@ -30,7 +30,7 @@ class MenuPrincipal:
                 user = auth.iniciar_sesion(usuario, password)
 
                 if user[2] == "admin":
-                    menu = MenuAdmin(user[1])
+                    menu = MenuAdmin(user[1], user[2])
                     menu.mostrar()
                 elif user[3] == "gerente":
                     menu = MenuGerente(user[1], user[2], user[3])
@@ -50,9 +50,10 @@ class MenuPrincipal:
 
 # Clase de Menú de Administrador
 class MenuAdmin:
-    def __init__(self, usuario):
+    def __init__(self, usuario, rol):
         self.usuario = usuario.capitalize()
-        print(f"{self.usuario}")
+        self.rol = rol
+      
     def mostrar(self):
         while True:
             limpiar_pantalla()
@@ -152,6 +153,7 @@ class MenuAdministrarEmpleados:
             limpiar_pantalla()
             eleccion = input("¿Sabe los ID de los departamentos? s/n: ").lower().strip()
 
+            
             if eleccion != "s":
                 departamento_model = DepartamentoModel()
                 departamentos = departamento_model.listar()
@@ -169,6 +171,11 @@ class MenuAdministrarEmpleados:
                         table.add_row([departamento[0], departamento[1], departamento[2]])
                     
                     print(table)
+
+                else:
+                    print("No hay departamentos registrados")
+                    time.sleep(1)
+                    self.mostrar()
 
 
             print("\n--- Agregar Empleado ---\n")
@@ -1214,8 +1221,6 @@ class MenuGerente:
                 elif seleccion_menu == "4":
                     menu = MenuAdministrarInformes()
                     menu.mostrar()
-                elif seleccion_menu == "5":
-                    en_desarrollo()
                 elif seleccion_menu == "s":
                     limpiar_pantalla()
                     return
@@ -1375,6 +1380,7 @@ class MenuGerenteEmpleadosDepartamentos:
             try:
                 # Eliminar el empleado del departamento
                 departamento_model = DepartamentoModel()
+                #AGREGAR IF TRUE
                 departamento_model.eliminar_empleado(empleado_id)
                 print("\nEmpleado eliminado exitosamente")
 
@@ -1477,6 +1483,7 @@ class MenuGestionarRegistros:
             try:
                 # Guardar el registro en la base de datos
                 registro_model = RegistroModel()
+                # AGREGAR IF TRUE
                 registro_model.crear(registro)
                 print("\nRegistro creado exitosamente")
 
@@ -1485,6 +1492,7 @@ class MenuGestionarRegistros:
             
             pausar()
             self.mostrar()
+        # Modificar Registro de Tiempo
         elif seleccion == "3":
             limpiar_pantalla()
             print("--- Modificar Registro ---\n")
@@ -1510,6 +1518,7 @@ class MenuGestionarRegistros:
 
                 try:
                     # Actualizar el registro en la base de datos
+                    # AGREGAR IF TRUE
                     registro_model.actualizar(registro, id)
                     print("\nRegistro actualizado exitosamente")
                     pausar()
@@ -1527,40 +1536,184 @@ class MenuGestionarRegistros:
             return
 
 
-
-
 # Clase de Menú de Empleado
 class MenuEmpleado:
     def __init__(self, usuario):
         self.usuario = usuario
 
     def mostrar(self):
-        limpiar_pantalla()
-        print("--- Menú de Empleado ---\n")
-
-        opciones = [
-            "1. Ver Proyectos",
-            "2. Ver Departamentos",
-            "S. Salir"
-        ]
-
-        for opcion in opciones:
-            print(opcion)
-
-        seleccion = input("\nSeleccione una opción: ").strip().lower()
-
-        if seleccion == "1":
-            en_desarrollo()
-        elif seleccion == "2":
-            en_desarrollo()
-        elif seleccion == "s":
+        while True:
             limpiar_pantalla()
-            return
-        else:
-            print("Opción no válida")
-            time.sleep(1)
-            self.mostrar()
+            print("--- Menú de Empleado ---\n")
 
+            print(f"Bienvenido {self.usuario}\n")
+
+            opciones = [
+                "1. Ver Proyectos",
+                "2. Ver Departamentos",
+                "3. Ver Empleados",
+                "4. Registro del tiempo",
+                "5. Informes",
+                "S. Salir"
+            ]
+
+            for opcion in opciones:
+                print(opcion)
+
+            try:
+                seleccion_menu_empleado = input("\nSeleccione una opción: ").strip().lower()
+
+                if seleccion_menu_empleado == "1":
+                    self.proyecto_model = ProyectoModel()
+                    proyectos = self.proyecto_model.listar()
+                   
+                    limpiar_pantalla()
+                    # Limpia la pantalla
+                    print("---Proyectos---\n")
+                    # Mostrar Menu ---- Proyectos ---
+                    table = PrettyTable()
+                    # Invocar tabla
+                    table.field_names = ["ID", "Nombre", "Descripcion", "Fecha Inicio", "Fecha Fin"]
+                    # Agregar Filas
+                    for proyecto in proyectos:
+                        table.add_row([proyecto[0], proyecto[1], proyecto[2], proyecto[3], proyecto[4]])
+                    # Iterar sobre los proyectos
+                    print(table)
+                    pausar()
+                    self.mostrar()
+                    # Funciones Finales
+
+                elif seleccion_menu_empleado == "2":
+                    self.departamento_model = DepartamentoModel()
+                    departamentos = self.departamento_model.listar()
+
+                    limpiar_pantalla()
+                    print("---Departamentos---\n")
+
+                    # Crear una tabla
+                    table = PrettyTable()
+
+                    # Definir los nombres de las columnas
+                    table.field_names = ["ID", "Nombre", "Descripcion", "ID Gerente", "Empleado", "Rol"]
+
+                    # Agregar filas a la tabla
+                    for departamento in departamentos:
+                        table.add_row([departamento[0], departamento[1], departamento[2], departamento[3], departamento[4], departamento[5]])
+
+                    # Imprimir la tabla
+                    print(table)
+
+                    pausar()
+                    self.mostrar()
+
+                elif seleccion_menu_empleado == "3":
+                    self.empleado_model = EmpleadoModel()
+                    empleados = self.empleado_model.listar()
+
+                    limpiar_pantalla()
+
+                    print("---Empleados---\n")
+
+                    table = PrettyTable()
+
+                    table.field_names = ["ID", "RUT", "Username", "Direccion", "Telefono", "Fecha Inicio Contrato", "Salario", "Departamento", "Rol"]
+                    for empleado in empleados:
+                        table.add_row([empleado[0], empleado[1], empleado[2], empleado[4], empleado[5], empleado[6], empleado[7], empleado[10], empleado[9]])
+
+                    print(table)
+
+                    pausar()
+                    self.mostrar()
+
+                elif seleccion_menu_empleado == "4":
+                    self.registro_model = RegistroModel()
+
+                    limpiar_pantalla()
+                    print("--- Registros de tiempo ---\n")
+
+                    opciones = [
+                        "1. Ver Registros",
+                        "2. Crear Registro",
+                    ]
+
+                    for opcion in opciones:
+                        print(opcion)
+
+                    seleccion = input("\nSeleccione una opción: ").strip().lower()
+
+                    
+                    if seleccion == "1":
+                        registros = self.registro_model.listar()
+
+                        limpiar_pantalla()
+                        print("--- Registros de tiempo ---\n")
+
+                        table = PrettyTable()
+
+                        table.field_names = ["ID", "Empleado ID", "Proyecto ID", "Fecha", "Horas Trabajadas", "Descripcion"]
+
+                        for registro in registros:
+                            table.add_row([registro[0], registro[1], registro[2], registro[3], registro[4], registro[5]])
+
+                        print(table)
+
+                        pausar()
+                        self.mostrar()
+                    
+                    elif seleccion == "2":
+                        limpiar_pantalla()
+                        print("--- Crear Registro ---\n")
+
+                        id_empleado = input("ID Empleado: ")
+                        id_proyecto = input("ID Proyecto: ")
+                        fecha = input("Fecha YYYY-MM-DD: ")
+                        horas = input("Horas trabajadas: ")
+                        descripcion = input("Descripcion de tareas: ")
+
+                        registro = Registro(id_empleado, id_proyecto, fecha, horas, descripcion)
+
+                        try:
+                            self.registro_model.crear(registro)
+                            print("\nRegistro creado exitosamente")
+                        except Exception as e:
+                            print(f"\nError al crear el registro: {str(e)}")
+
+                        pausar()
+                        self.mostrar()
+
+                    pausar()
+                    self.mostrar()
+
+                elif seleccion_menu_empleado == "5":
+                    self.informe_model = InformeModel()
+                    informes = self.informe_model.listar()
+
+                    limpiar_pantalla()
+                    print("---Informes---\n")
+
+                    table = PrettyTable()
+
+                    table.field_names = ["ID", "Titulo", "Descripcion", "Fecha", "Empleado ID", "Proyecto ID"]
+
+                    for informe in informes:
+                        table.add_row([informe[0], informe[1], informe[2], informe[3], informe[4], informe[5]])
+
+                    print(table)
+
+                    pausar()
+                    self.mostrar()
+                
+                elif seleccion_menu_empleado == "s":
+                    limpiar_pantalla()
+                    break
+                else:
+                    print("Opción no válida")
+                    time.sleep(1)
+                    self.mostrar()
+            except:
+                    print("Error en la selección")
+                    time.sleep(1)
+                    self.mostrar()
 # Funciones Helper
 def limpiar_pantalla():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -1575,8 +1728,5 @@ def en_desarrollo():
 
 # Si el archivo es ejecutado directamente se ejecuta el menú principal
 if __name__ == '__main__':
-    # bypass para no tener que logearse
-    menu = MenuGerente("testu", 2, "gerente")
-    """menu = MenuGerenteEmpleadosDepartamentos("testu", 2, "gerente")"""
-    menu.mostrar()
+    pass
 

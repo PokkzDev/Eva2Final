@@ -44,3 +44,4 @@ if __name__ == '__main__':
     print(auth.iniciar_sesion("gerente", "Asdf1234"))
     print("----")
     print(auth.iniciar_sesion("usuario", "Asdf1234"))
+   
