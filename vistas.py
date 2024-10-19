@@ -33,7 +33,9 @@ class MenuPrincipal:
                     menu = MenuAdmin(user[1])
                     menu.mostrar()
                 elif user[2] == "gerente":
+                    
                     menu = MenuGerente(user[1])
+                    input()
                     menu.mostrar()
                 else:
                     menu = MenuEmpleado(user[1])
@@ -43,6 +45,7 @@ class MenuPrincipal:
                 time.sleep(1)
                 self.mostrar()
         except:
+            pausar()
             print("\nError en la autenticación")
             time.sleep(1)
             self.mostrar()
@@ -133,11 +136,11 @@ class MenuAdministrarEmpleados:
             table = PrettyTable()
             
             # Definir los nombres de las columnas
-            table.field_names = ["ID", "RUT", "Username", "Direccion", "Telefono", "Fecha Inicio Contrato", "Salario", "Departamento", "Rol"]
+            table.field_names = ["ID", "RUT", "Username", "Direccion", "Telefono", "Fecha Inicio Contrato", "Salario", "Rol"]
 
             # Agregar filas a la tabla
             for empleado in empleados:
-                table.add_row([empleado[0], empleado[1], empleado[2], empleado[4], empleado[5], empleado[6], empleado[7], empleado[10], empleado[9]])
+                table.add_row([empleado[0], empleado[1], empleado[2], empleado[4], empleado[5], empleado[6], empleado[7], empleado[9]])
             
 
 
@@ -1159,18 +1162,22 @@ class MenuAdministrarInformes:
         
 # Clase de Menú de Gerente
 class MenuGerente:
-    def __init__(self, usuario):
+    def __init__(self, usuario, rol):
         self.usuario = usuario
+        self.rol = rol
 
     def mostrar(self):
         while True:
             limpiar_pantalla()
+            print(self.rol)
             print("--- Menú de Gerente ---\n")
 
             opciones = [
-                "1. Asignar Empleados a proyectos",
-                "2. Asignar Empleados a Departamentos",
+                "1. Mostrar Empleados en Departamento designado", # Gestionar empleados en departamentos
+                "2. Administrar Empleados a Departamentos",
                 "3. Administrar Proyectos",
+                "4. Registrar horario",
+                "5. Administrar informes"
                 "S. Salir"
             ]
 
@@ -1181,10 +1188,14 @@ class MenuGerente:
                 seleccion_menu = input("\nSeleccione una opción: ").strip().lower()
 
                 if seleccion_menu == "1":
-                    en_desarrollo()
+                    MenuGerenteEmpleadosDepartamentos()
                 elif seleccion_menu == "2":
                     en_desarrollo()
                 elif seleccion_menu == "3":
+                    en_desarrollo()
+                elif seleccion_menu == "4":
+                    en_desarrollo()
+                elif seleccion_menu == "5":
                     en_desarrollo()
                 elif seleccion_menu == "s":
                     limpiar_pantalla()
@@ -1197,6 +1208,138 @@ class MenuGerente:
                 print("Error en la selección")
                 time.sleep(1)
                 self.mostrar()
+
+class MenuGerenteEmpleadosDepartamentos:
+    def mostrar(self, usuario, rol):
+        limpiar_pantalla()
+        self.usuario = usuario
+        
+        print("--- Menú de Gestionar Empleados en Departamento asignado ---\n")
+
+        opciones = [
+            "1. Mostrar Empleados en Departamento asignado",
+            "2. Agregar Empleados en Departamento asignado",
+            "3. Eliminar Empleados en Departamento asignado",
+            
+            "S. Volver"
+        ]
+
+        for opcion in opciones:
+            print(opcion)
+
+        seleccion = input("\nSeleccione una opción: ").strip().lower()
+
+        # Ver Departamentos
+
+        if seleccion == "1":
+            limpiar_pantalla()
+            print("--- Empleados por Departamento ---\n")
+
+            departamento_id = self.usuario
+
+            # Buscar el departamento en la base de datos
+            departamento_model = DepartamentoModel()
+            departamento = departamento_model.existe(departamento_id)
+
+            if departamento:
+                print("\nDepartamento encontrado\n")
+
+                empleados = departamento_model.listar_empleados(departamento_id)
+
+                # Crear una tabla
+                table = PrettyTable()
+
+                # Definir los nombres de las columnas
+                table.field_names = ["ID", "RUT", "Username", "Direccion", "Telefono", "Fecha Inicio Contrato", "Salario", "Rol"]
+
+                # Agregar filas a la tabla
+                for empleado in empleados:
+                    table.add_row([empleado[0], empleado[1], empleado[2], empleado[4], empleado[5], empleado[6], empleado[7], empleado[9]])
+
+                # Imprimir la tabla
+                print(table)
+                pausar()
+                self.mostrar()
+            else:
+                print("\nDepartamento no encontrado")
+                pausar()
+                self.mostrar()
+        
+        # Asignar Empleados a Departamento
+        elif seleccion == "2":
+            limpiar_pantalla()
+            print("--- Asignar Empleados a Departamento ---\n")
+
+            empleado_id = input("ID Empleado: ")
+            departamento_id = input("ID Departamento: ")
+
+            # a INT
+            empleado_id = int(empleado_id)
+            departamento_id = int(departamento_id)
+
+            try:
+                # Asignar el empleado al departamento
+                departamento_model = DepartamentoModel()
+                if departamento_model.asignar_empleado(empleado_id, departamento_id):
+                    print("\nEmpleado asignado exitosamente")
+                else:
+                    print("\nEmpleado ya esta asignado a un departamento")
+                    
+            except Exception as e:
+                print(f"\nError al asignar el empleado: {str(e)}")
+            
+            pausar()
+            self.mostrar()
+        
+        # Modificar Empleados de Departamento
+        elif seleccion == "3":
+            limpiar_pantalla()
+            print("--- Modificar Empleados de Departamento ---\n")
+
+            empleado_id = input("ID Empleado: ")
+            departamento_id = input("ID Departamento al que se asignara: ")
+
+            # a INT
+            empleado_id = int(empleado_id)
+            departamento_id = int(departamento_id)
+
+            try:
+                # Modificar el empleado del departamento
+                departamento_model = DepartamentoModel()
+                departamento_model.modificar_empleado(empleado_id, departamento_id)
+                print("\nEmpleado modificado exitosamente")
+            except Exception as e:
+                print(f"\nError al modificar el empleado: {str(e)}")
+            
+            pausar()
+            self.mostrar()
+        
+        # Eliminar Empleados de Departamento
+        elif seleccion == "8":
+            limpiar_pantalla()
+            print("--- Eliminar Empleados de Departamento ---\n")
+
+            empleado_id = input("ID Empleado: ")
+            
+
+            try:
+                # Eliminar el empleado del departamento
+                departamento_model = DepartamentoModel()
+                departamento_model.eliminar_empleado(empleado_id)
+                print("\nEmpleado eliminado exitosamente")
+
+            except Exception as e:
+                print(f"\nError al eliminar el empleado: {str(e)}")
+            
+            pausar()
+            self.mostrar()
+
+        elif seleccion == "s":
+            return
+        else:
+            print("Opción no válida")
+            time.sleep(1)
+            self.mostrar()
 
 # Clase de Menú de Empleado
 class MenuEmpleado:
@@ -1245,6 +1388,6 @@ def en_desarrollo():
 # Si el archivo es ejecutado directamente se ejecuta el menú principal
 if __name__ == '__main__':
     # bypass para no tener que logearse
-    menu = MenuAdmin("admin")
+    menu = MenuGerenteEmpleadosDepartamentos()
     menu.mostrar()
 
