@@ -311,18 +311,146 @@ class MenuAdministrarEmpleados:
 
             # Buscar el empleado en la base de datos
             empleado = self.empleado_model.existe(rut)
-
-            print(empleado)
-            input()
-            
-
+            print("Empleado encontrado\n")
+            time.sleep(1)
             if empleado:
-                # expect (True, (8, '18808398-6', 'luis.contreras', '$2b$10$EgdX1vyhYkDDqwKOu06L2ugXUkmjI15U7Mw35NhDSmsPiFhRmNdSO', 'Mi Casa', '932944755', datetime.date(2024, 10, 21), 20.0, 'usuario'))
-                print("\nEmpleado encontrado\n")
+                limpiar_pantalla()
+                print("--- Modificar Empleado ---\n")
+                # Solicitar los nuevos datos del empleado o mantener los antiguos
+                print("Ingrese los nuevos datos del empleado o presione Enter para mantener los antiguos\n")
+                
+                while True:
+                    new_rut = input(f"RUT ({empleado[1]}): ") or empleado[1]
 
-                # Mostrar los datos del empleado
+                    # Validar Rut Usando helper
+                    if not validar_rut(new_rut):
+                        print("El rut no es valido")
+                        pausar()
+
+                    else:
+                        break
+                
+                while True:
+                    new_username = input(f"Username ({empleado[2]}): ") or empleado[2]
+                    if new_username.strip():
+                        break
+                    else:
+                        print("El username no puede estar vacio")
+                
+                while True:
+                    new_password = pwinput.pwinput(prompt="Password: ") or empleado[3]
+
+                    # if old password break
+                    if new_password == empleado[3]:
+                        break
+
+                    # Si contraseña esta vacia
+                    if not new_password.strip():
+                        print("La contraseña no puede estar vacía.")
+                        continue
+
+                    new_password2 = pwinput.pwinput(prompt="Confirme el Password: ") or empleado[3]
+
+                    # Si contraseña esta vacia
+                    if not new_password2.strip():
+                        print("La contraseña no puede estar vacía.")
+                        continue
+
+                    # Validar que la contraseña sea válida y coincida
+                    if new_password != new_password2:
+                        print("Las contraseñas no coinciden.")
+                        continue
+                    else:
+                        break
+                
+                while True:
+                    new_direccion = input(f"Direccion ({empleado[4]}): ") or empleado[4]
+                    if new_direccion.strip():
+                        break
+                    else:
+                        print("La direccion no puede estar vacia")
+
+                while True:
+                    new_telefono = input(f"Telefono ({empleado[5]}): ") or empleado[5]
+                    new_telefono = new_telefono.strip()
+                    try:
+                        if new_telefono.startswith("9"):
+                            if len(new_telefono) == 9:
+                                new_telefono = int(new_telefono)
+                                break
+                            else:
+                                print("No tiene la cantidad de numeros correspondiente a un telefono")
+                        else:
+                            print("Usted no ingreso el formato correcto de un telefono")
+                    except:
+                        print("Usted no ingreso el formato correcto de un telefono")
+
+                while True:
+                    # formatear fecha a DD-MM-YYYY
+                    show_fecha_contrato = empleado[6].strftime("%d-%m-%Y")
+
+                     
+                    new_fecha_contrato = input(f"Fecha Inicio Contrato ({show_fecha_contrato}): ") or empleado[6]
+
+                    if new_fecha_contrato == empleado[6]:
+                        break
+
+                    # if DD-MM-YYYY convert to datetime
+                    try:
+                        new_fecha_inicio_contrato = datetime.datetime.strptime(new_fecha_contrato, '%d-%m-%Y')
+                        break
+                    except:
+                        print("Usted no igreso una fecha")
+                           
+
+                while True:
+                    new_salario = input(f"Salario ({empleado[7]}): ") or empleado[7]
+
+                    if new_salario == empleado[7]:
+                        break
+
+                    try:
+                        if new_salario.strip():
+                            new_salario = float(new_salario)
+                            break
+                        else:
+                            print("El salario no puede estar vacio")
+                    except:
+                        print("Esto no es un digito")
+
+                while True:
+                    new_rol = input(f"Rol (admin, gerente, usuario): ") or empleado[8]
+                    
+                    opciones = ["admin", "gerente", "usuario"]
+
+                    if new_rol in opciones:
+                        break
+                    else:
+                        print("Usted no ingreso un rol existente")
+                
+
+                # Hash de la contraseña
+                hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt(rounds=10)).decode('utf-8')
                 
                 
+                try:
+                    empleado = Empleado(new_rut, new_username, hashed_password, new_direccion, new_telefono, new_fecha_inicio_contrato, new_salario, new_rol)
+                except Exception as e:
+                    print(f"Error al ingresar datos: {str(e)}")
+                    pausar()
+                    self.mostrar()
+
+
+                try:
+                    # Actualizar el empleado en la base de datos
+                    self.empleado_model.actualizar(empleado, rut)
+                    print("\nEmpleado actualizado exitosamente")
+                    pausar()
+                    self.mostrar()
+                except Exception as e:
+                    print(f"\nError al actualizar el empleado: {str(e)}")
+                    pausar()
+                    self.mostrar()
 
             else:
                 print("\nEmpleado no encontrado")
@@ -410,15 +538,16 @@ class MenuAdministrarDepartamentos:
                         departamento_model = DepartamentoModel()
                         departamentos = departamento_model.listar()
 
+                        # expect (1, 'Desarrollo', 'Departamento de desarrollo de software', 2, 'gerente', 'gerente')
                         # Crear una tabla
                         table = PrettyTable()
 
                         # Definir los nombres de las columnas
-                        table.field_names = ["ID", "Nombre", "Descripcion", "ID Gerente", "Empleado", "Rol"]
+                        table.field_names = ["ID", "Nombre", "Descripcion", "Gerente (Username)", "ID Gerente"]
 
                         # Agregar filas a la tabla
                         for departamento in departamentos:
-                            table.add_row([departamento[0], departamento[1], departamento[2], departamento[3], departamento[4], departamento[5]])
+                            table.add_row([departamento[0], departamento[1], departamento[2], departamento[4], departamento[3]])
 
                         # Imprimir la tabla
                         print(table)
@@ -545,6 +674,8 @@ class MenuAdministrarDepartamentos:
                         departamento_model = DepartamentoModel()
                         departamento = departamento_model.existe(departamento_id)
 
+                        
+
                         if departamento:
                             print("\nDepartamento encontrado\n")
 
@@ -552,18 +683,20 @@ class MenuAdministrarDepartamentos:
 
                             # Crear una tabla
                             table = PrettyTable()
-
+                            
                             # Definir los nombres de las columnas
                             table.field_names = ["ID", "RUT", "Username", "Direccion", "Telefono", "Fecha Inicio Contrato", "Salario", "Rol"]
 
                             # Agregar filas a la tabla
                             for empleado in empleados:
-                                table.add_row([empleado[0], empleado[1], empleado[2], empleado[4], empleado[5], empleado[6], empleado[7], empleado[9]])
+                                table.add_row([empleado[0], empleado[1], empleado[2], empleado[4], empleado[5], empleado[6], empleado[7], empleado[8]])
 
                             # Imprimir la tabla
                             print(table)
+
                             pausar()
                             self.mostrar()
+                                              
                         else:
                             print("\nDepartamento no encontrado")
                             pausar()
@@ -646,7 +779,7 @@ class MenuAdministrarDepartamentos:
                         self.mostrar()
 
             elif seleccion == "s":
-                break
+                return
             else:
                 print("Opción no válida")
                 time.sleep(1)

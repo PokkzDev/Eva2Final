@@ -4,10 +4,11 @@ Archivo que contiene la definición de los modelos de la aplicación.
 
 from modules.db_conn import DB_Conn
 import bcrypt
+from datetime import date
 
 # Clase Empleado
 class Empleado:
-    def __init__(self, rut: str, username: str, password: str, direccion: str, telefono: int, fecha_inicio_contrato: str, salario: float, rol: str):
+    def __init__(self, rut: str, username: str, password: str, direccion: str, telefono: int, fecha_inicio_contrato: date, salario: float, rol: str):
         self.rut = rut
         self.username = username
         self.password = password
@@ -87,7 +88,7 @@ class EmpleadoModel:
             db.cerrar_conexion()
             
             if empleado:
-                return True, empleado
+                return empleado
             else:
                 return False
         except Exception as e:
