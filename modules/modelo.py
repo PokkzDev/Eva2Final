@@ -7,7 +7,7 @@ import bcrypt
 
 # Clase Empleado
 class Empleado:
-    def __init__(self, rut: str, username: str, password: str, direccion: str, telefono: int, fecha_inicio_contrato: str, salario: float, departamento_id: 'Departamento', rol: str):
+    def __init__(self, rut: str, username: str, password: str, direccion: str, telefono: int, fecha_inicio_contrato: str, salario: float, rol: str):
         self.rut = rut
         self.username = username
         self.password = password
@@ -15,11 +15,6 @@ class Empleado:
         self.telefono = telefono
         self.fecha_inicio_contrato = fecha_inicio_contrato
         self.salario = salario
-        self.departamento_id = departamento_id
-
-        if self.departamento_id == "" or self.departamento_id == "0":
-            self.departamento_id = None
-
         self.rol = rol
 
 # Clase EmpleadoModel que maneja la lógica de la base de datos
@@ -32,23 +27,22 @@ class EmpleadoModel:
         cursor.execute("SELECT e.*, ed.departamento_id, d.nombre FROM empleados e LEFT JOIN empleados_departamento ed ON e.id = ed.empleado_id LEFT JOIN departamento d ON ed.departamento_id = d.id")
         empleados = cursor.fetchall()
 
-        cursor.close()
-        db.cerrar_conexion()
-        # Formatear las fechas de 'YYYY-MM-DD' a 'DD-MM-YYYY'
         empleados_formateados = []
         for empleado in empleados:
-            (id, rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol, departamento_id, nombre_departamento) = empleado
+            (id, rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, rol, departamento_id, nombre_departamento) = empleado
 
-            # Formatear la fecha si no es None
             if fecha_inicio_contrato:
                 fecha_inicio_contrato = fecha_inicio_contrato.strftime('%d-%m-%Y')
 
-            # Crear una nueva tupla con las fechas formateadas
-            empleado_formateado = (id, rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol, departamento_id, nombre_departamento)
+            empleado_formateado = (id, rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, rol, departamento_id, nombre_departamento)
             empleados_formateados.append(empleado_formateado)
 
-        return empleados_formateados
+        cursor.close()
 
+        db.cerrar_conexion()
+
+        return empleados_formateados
+    
     def crear(self, empleado: Empleado):
         db = DB_Conn()
         conexion = db.iniciar_conexion()
@@ -58,13 +52,10 @@ class EmpleadoModel:
         hashed_password = bcrypt.hashpw(empleado.password.encode('utf-8'), bcrypt.gensalt(rounds=10)).decode('utf-8')
 
         cursor.execute(
-            "INSERT INTO empleados (rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", 
-            (empleado.rut, empleado.username, 
-             hashed_password, 
-             empleado.direccion, empleado.telefono, 
-             empleado.fecha_inicio_contrato, empleado.salario, 
-             empleado.departamento_id, empleado.rol)
+            "INSERT INTO empleados (rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, rol) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", 
+            (empleado.rut, empleado.username, hashed_password, empleado.direccion, empleado.telefono, empleado.fecha_inicio_contrato, empleado.salario, empleado.rol)
         )
+
 
         conexion.commit()
         cursor.close()
@@ -76,12 +67,8 @@ class EmpleadoModel:
         cursor = conexion.cursor()
 
         cursor.execute(
-            "UPDATE empleados SET rut = %s, username = %s, password = %s, direccion = %s, telefono = %s, fecha_inicio_contrato = %s, salario = %s, departamento_id = %s, rol = %s WHERE rut = %s", 
-            (empleado.rut, empleado.username, 
-             empleado.password, 
-             empleado.direccion, empleado.telefono, 
-             empleado.fecha_inicio_contrato, empleado.salario, 
-             empleado.departamento_id, empleado.rol, old_rut)
+            "UPDATE empleados SET rut = %s, username = %s, password = %s, direccion = %s, telefono = %s, fecha_inicio_contrato = %s, salario = %s, rol = %s WHERE rut = %s", 
+            (empleado.rut, empleado.username, empleado.password, empleado.direccion, empleado.telefono, empleado.fecha_inicio_contrato, empleado.salario,  empleado.rol, old_rut)
         )
 
         conexion.commit()
@@ -98,21 +85,15 @@ class EmpleadoModel:
             empleado = cursor.fetchone()
             cursor.close()
             db.cerrar_conexion()
+            
             if empleado:
-                # Asumiendo que la columna 'fecha_inicio_contrato' está en la posición 6 (índice 5 en la tupla)
-                (id, rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol) = empleado
-
-                # Formatear la fecha si no es None
-                if fecha_inicio_contrato:
-                    fecha_inicio_contrato = fecha_inicio_contrato.strftime('%d-%m-%Y')
-
-                # Crear una nueva tupla con la fecha formateada
-                empleado_formateado = (id, rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol)
-
-            return empleado_formateado
+                return True, empleado
+            else:
+                return False
         except Exception as e:
             print(f"Error al buscar el empleado: {str(e)}")
             return False
+        
     def eliminar(self, rut: str):
         db = DB_Conn()
         conexion = db.iniciar_conexion()
@@ -208,13 +189,7 @@ class DepartamentoModel:
                 (departamento.nombre, departamento.descripcion, departamento.id_gerente, id)
             )
 
-            # Actualizar empleados 
-
-            cursor.execute(
-                "UPDATE empleados SET  departamento_id = %s WHERE id = %s",
-                (id, departamento.id_gerente)
-            )
-
+            # Actualizar el departamento del gerente si se asigna a un nuevo departamento
             cursor.execute(
                 "UPDATE empleados_departamento SET departamento_id = %s WHERE empleado_id = %s",
                 (id, departamento.id_gerente)

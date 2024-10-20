@@ -23,9 +23,22 @@ class Auth:
     def iniciar_sesion(self, usuario, password):
         try:
             cursor = self.conexion.cursor()
-            cursor.execute("SELECT id, username, password, departamento_id, rol FROM empleados WHERE username = %s", (usuario,))
+            cursor.execute("SELECT id, username, password, rol FROM empleados WHERE username = %s", (usuario,))
             usuario = cursor.fetchone()
+
+            # traer el departamento_id usando el id del usuario
+            if usuario:
+                cursor.execute("SELECT departamento_id FROM empleados_departamento WHERE empleado_id = %s", (usuario[0],))
+                departamento_id = cursor.fetchone()
+            
+                # agregar el departamento_id al usuario
+                usuario = list(usuario)
+                usuario.append(departamento_id[0])
+
             cursor.close()
+
+            # Cerrar la conexión
+            self.db.cerrar_conexion()
 
             # Verificar si el usuario existe
             if usuario:
@@ -35,8 +48,8 @@ class Auth:
                     user = {
                         "id": usuario[0],
                         "username": usuario[1],
-                        "departamento_id": usuario[3],
-                        "rol": usuario[4]
+                        "rol": usuario[3],
+                        "departamento_id": usuario[4]
                     }
                     return user
                 else:
