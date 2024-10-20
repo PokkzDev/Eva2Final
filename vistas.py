@@ -35,7 +35,7 @@ class MenuPrincipal:
                 if user["rol"] == "admin":
                     menu = MenuAdmin(user["username"], user["rol"])
                 elif user["rol"] == "gerente":
-                    menu = MenuGerente(user["username"], user["departamento_id"], user["rol"])
+                    menu = MenuGerente(user["id"], user["username"], user["departamento_id"], user["rol"])
                 elif user["rol"] == "usuario":
                     menu = MenuEmpleado(user["username"], user["id"], user["rol"])
                 else:
@@ -1273,7 +1273,8 @@ class MenuAdministrarInformes:
         
 # Clase de Menú de Gerente
 class MenuGerente:
-    def __init__(self, usuario, departamento_id, rol):
+    def __init__(self, id, usuario, departamento_id, rol):
+        self.id = id
         self.usuario = usuario
         self.departamento_id = departamento_id
         self.rol = rol
@@ -1298,13 +1299,13 @@ class MenuGerente:
                 seleccion_menu = input("\nSeleccione una opción: ").strip().lower()
 
                 if seleccion_menu == "1":
-                    menu = MenuGerenteEmpleadosDepartamentos(self.usuario, self.departamento_id, self.rol)
+                    menu = MenuGerenteEmpleadosDepartamentos(self.id, self.usuario, self.departamento_id, self.rol)
                     menu.mostrar()
                 elif seleccion_menu == "2":
                     menu = MenuAdministrarProyectos()
                     menu.mostrar()
                 elif seleccion_menu == "3":
-                    menu = MenuGestionarRegistros(self.usuario, self.departamento_id, self.rol)
+                    menu = MenuGestionarRegistros(self.id, self.usuario, self.departamento_id, self.rol)
                     menu.mostrar()
                 elif seleccion_menu == "4":
                     menu = MenuAdministrarInformes()
@@ -1323,7 +1324,8 @@ class MenuGerente:
 
 # Menu de gerente para Administrar Empleados en su departamento
 class MenuGerenteEmpleadosDepartamentos:
-    def __init__(self, usuario, departamento_id, rol):
+    def __init__(self, id, usuario, departamento_id, rol):
+        self.id = id
         self.usuario = usuario
         self.departamento_id = departamento_id
         self.rol = rol
@@ -1354,16 +1356,14 @@ class MenuGerenteEmpleadosDepartamentos:
             limpiar_pantalla()
             print("--- Empleados por Departamento ---\n")
 
-            departamento_id = self.departamento_id
-
             # Buscar el departamento en la base de datos
             departamento_model = DepartamentoModel()
-            departamento = departamento_model.existe(departamento_id)
+            departamento = departamento_model.existe(self.departamento_id)
 
             if departamento:
                 print("\nDepartamento encontrado\n")
 
-                empleados = departamento_model.listar_empleados(departamento_id)
+                empleados = departamento_model.listar_empleados(self.departamento_id)
 
                 # Crear una tabla
                 table = PrettyTable()
@@ -1469,16 +1469,21 @@ class MenuGerenteEmpleadosDepartamentos:
 
             while True:
                 empleado_id = input("ID Empleado a desasignar: ")
+                empleado_id = int(empleado_id)
+                
+                if empleado_id == self.id:
+                    print("No puedes desasignarte a ti mismo")
+                    continue
+                else:
+                    try:
+                        # Eliminar el empleado del departamento
+                        departamento_model = DepartamentoModel()
+                        departamento_model.eliminar_empleado(empleado_id)
+                        print("\nEmpleado desasignado exitosamente")
+                        break
 
-                try:
-                    # Eliminar el empleado del departamento
-                    departamento_model = DepartamentoModel()
-                    departamento_model.eliminar_empleado(empleado_id)
-                    print("\nEmpleado desasignado exitosamente")
-                    break
-
-                except Exception as e:
-                    print(f"\nError al desasignar el empleado: {str(e)}")
+                    except Exception as e:
+                        print(f"\nError al desasignar el empleado: {str(e)}")
 
             
             pausar()
@@ -1497,9 +1502,6 @@ class MenuGestionarRegistros:
         self.usuario = usuario
         self.id = id_usuario
         self.rol = rol
-
-        print(self.usuario, self.id, self.rol)
-        input()
 
         self.empleado_model = EmpleadoModel()
 
@@ -1845,16 +1847,6 @@ def validar_rut(rut):
         return True
     else:
         return False
-    
-
-
-# Si el archivo es ejecutado directamente se ejecuta el menú principal
-if __name__ == '__main__':
-    menu = MenuGerente("TestGerente", 2,  "gerente")
-    menu.mostrar()
-
-    """ menu = MenuAdmin("TestAdmin", "admin")
-    menu.mostrar() """
     
 
 
