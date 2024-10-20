@@ -71,8 +71,6 @@ class EmpleadoModel:
         db.cerrar_conexion()
 
     def actualizar(self, empleado: Empleado, old_rut: str):
-
-        print(empleado)
         db = DB_Conn()
         conexion = db.iniciar_conexion()
         cursor = conexion.cursor()
