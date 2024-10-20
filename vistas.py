@@ -390,7 +390,7 @@ class MenuAdministrarEmpleados:
                     show_fecha_contrato = empleado[6].strftime("%d-%m-%Y")
 
                      
-                    new_fecha_contrato = input(f"Fecha Inicio Contrato ({show_fecha_contrato}): ") or empleado[6]
+                    new_fecha_contrato = input(f"Fecha Inicio Contrato ({show_fecha_contrato}): ") or show_fecha_contrato
 
                     if new_fecha_contrato == empleado[6]:
                         break
@@ -831,28 +831,29 @@ class MenuAdministrarProyectos:
             limpiar_pantalla()
             print("--- Agregar Proyecto ---\n")
 
-            try:
+            # Solicitar los datos del proyecto, no permitir vacios
+            while True:
                 nombre = input("Nombre: ")
                 descripcion = input("Descripcion: ")
+                fecha_inicio = input("Fecha Inicio DD-MM-YYYY: ")
+                fecha_fin = input("Fecha Fin DD-MM-YYYY: ")
 
-                while True:
+                
+
+                if nombre and descripcion and fecha_inicio and fecha_fin:
+                    # Validar que las fechas sean correctas
                     try:
-                        fecha_inicio = input("Fecha Inicio DD-MM-YYYY: ")
                         fecha_inicio = datetime.datetime.strptime(fecha_inicio, '%d-%m-%Y')
-
-                        fecha_fin = input("Fecha Fin DD-MM-YYYY: ")
                         fecha_fin = datetime.datetime.strptime(fecha_fin, '%d-%m-%Y')
-
-                        if fecha_fin > fecha_inicio:
+                        diferencia_fechas = fecha_fin - fecha_inicio
+                        diferencia_fechas = diferencia_fechas.days
+                    
+                        if diferencia_fechas > 0:
                             break
-                        else:
-                            print("Error: La fecha de término no puede ser anterior a la fecha de inicio.")
-                    except ValueError:
-                        print("Error: Formato de fecha incorrecto. Use DD-MM-YYYY.")
-            except Exception as e:
-                print(f"Error al ingresar datos: {str(e)}")
-                pausar()
-                self.mostrar()
+                    except:
+                        print("No ingreso el formato de fecha")
+                else:
+                    print("No puede dejar campos vacios")
 
             # Crear el objeto Proyecto
             proyecto = Proyecto(nombre, descripcion, fecha_inicio, fecha_fin)
@@ -873,6 +874,11 @@ class MenuAdministrarProyectos:
             print("--- Modificar Proyecto ---\n")
 
             id = input("Ingrese el ID del proyecto a modificar: ")
+
+            if not id:
+                print("El ID no puede estar vacio")
+                pausar()
+                self.mostrar()
 
             # Buscar el proyecto en la base de datos
             proyecto_model = ProyectoModel()
@@ -1148,7 +1154,9 @@ class MenuAdministrarInformes:
 
             # Agregar filas a la tabla
             for informe in informes:
-                table.add_row([informe[0], informe[1], informe[2], informe[4], informe[5], informe[3]])
+                # formatear fecha a DD-MM-YYYY
+                fecha = informe[3].strftime("%d-%m-%Y")
+                table.add_row([informe[0], informe[1], informe[2], informe[4], informe[5], fecha])
 
             # Imprimir la tabla
             print(table)
@@ -1160,18 +1168,24 @@ class MenuAdministrarInformes:
             limpiar_pantalla()
             print("--- Agregar Informe ---\n")
 
-            titulo = input("Titulo: ")
-            descripcion = input("Descripcion: ")
             while True:
-                try:
-                    fecha = input("Fecha YYYY-MM-DD: ")
-                    fecha = datetime.datetime.strptime(fecha, '%Y-%m-%d')
-                    break
-                except:
-                    print("No ingreso el formato de fecha")
+                titulo = input("Titulo: ")
+                descripcion = input("Descripcion: ")
+                fecha = input("Fecha DD-MM-YYYY: ")
+                empleado_id = input("ID Empleado: ")
+                proyecto_id = input("ID Proyecto: ")
 
-            empleado_id = input("ID Empleado: ")
-            proyecto_id = input("ID Proyecto: ")
+                if titulo and descripcion and fecha and empleado_id and proyecto_id:
+                    # Validar que las fechas sean correctas
+                    try:
+                        fecha = datetime.datetime.strptime(fecha, '%d-%m-%Y')
+                        break
+                    except:
+                        print("No ingreso el formato de fecha")
+                else:
+                    print("No puede dejar campos vacios")
+
+
 
             # Crear el objeto Informe
             informe = Informe(titulo, descripcion, fecha, empleado_id, proyecto_id)
@@ -1201,10 +1215,13 @@ class MenuAdministrarInformes:
             if informe:
                 print("\nInforme encontrado\n")
 
+                # formatear fecha a DD-MM-YYYY
+                fecha = informe[3].strftime("%d-%m-%Y")
+
                 # Mostrar los datos del informe
                 new_titulo = input(f"Titulo ({informe[1]}): ") or informe[1]
                 new_descripcion = input(f"Descripcion ({informe[2]}): ") or informe[2]
-                new_fecha = input(f"Fecha ({informe[3]}): ") or informe[3]
+                new_fecha = input(f"Fecha ({fecha}): ") or informe[3]
                 new_empleado_id = input(f"ID Empleado ({informe[4]}): ") or informe[4]
                 new_proyecto_id = input(f"ID Proyecto ({informe[5]}): ") or informe[5]
 
@@ -1260,7 +1277,7 @@ class MenuGerente:
         self.usuario = usuario
         self.departamento_id = departamento_id
         self.rol = rol
-
+        
     def mostrar(self):
         while True:
             limpiar_pantalla()
@@ -1310,6 +1327,7 @@ class MenuGerenteEmpleadosDepartamentos:
         self.usuario = usuario
         self.departamento_id = departamento_id
         self.rol = rol
+
         self.empleado_model = EmpleadoModel()
     
     def mostrar(self):
@@ -1349,16 +1367,18 @@ class MenuGerenteEmpleadosDepartamentos:
 
                 # Crear una tabla
                 table = PrettyTable()
-
+                
+                # expect (2, '12345667-9', 'gerente', '$2b$10$Zyk/rZJobzzf/iOKoyMgu.5SjVpmVsAtK0cMNHm0NISCjxk3BCu3K', 'Calle Falsa 123', '987654321', datetime.date(2023, 1, 1), 700000.0, 'gerente')
                 # Definir los nombres de las columnas
                 table.field_names = ["ID", "RUT", "Username", "Direccion", "Telefono", "Fecha Inicio Contrato", "Salario", "Rol"]
 
                 # Agregar filas a la tabla
                 for empleado in empleados:
-                    table.add_row([empleado[0], empleado[1], empleado[2], empleado[4], empleado[5], empleado[6], empleado[7], empleado[9]])
+                    table.add_row([empleado[0], empleado[1], empleado[2], empleado[4], empleado[5], empleado[6], empleado[7], empleado[8]])
 
                 # Imprimir la tabla
                 print(table)
+
                 pausar()
                 self.mostrar()
             else:
@@ -1371,7 +1391,7 @@ class MenuGerenteEmpleadosDepartamentos:
             limpiar_pantalla()
             print("--- Asignar Empleados a Departamento ---\n")
             empleados = self.empleado_model.listar()
-            print("\n--- Empleados ---\n")
+            print("\n--- Empleados Aún no asignados a un Departamento ---\n")
 
             # Crear una tabla
             table = PrettyTable()
@@ -1425,38 +1445,41 @@ class MenuGerenteEmpleadosDepartamentos:
             limpiar_pantalla()
             print("--- Eliminar Empleados de Departamento ---\n")
             departamento_id = self.departamento_id
-            empleados = self.empleado_model.listar()
+
+            departamento_model = DepartamentoModel()
+            empleados = departamento_model.listar_empleados(departamento_id)
+
             print("\n--- Empleados ---\n")
 
             # Crear una tabla
             table = PrettyTable()
-            empleados_desasignados = []
+            empleados_asignados = []
             
+            # expect (1, '12345678-9', 'admin', '$2b$10$Zyk/rZJobzzf/iOKoyMgu.5SjVpmVsAtK0cMNHm0NISCjxk3BCu3K', 'Calle Falsa 123', '123456789', datetime.date(2021, 1, 1), 1000000.0, 'admin')
             # Definir los nombres de las columnas
-            table.field_names = ["ID", "Username", "ID Departamento", "Rol"]
+            table.field_names = ["ID", "RUT", "Username", "Direccion", "Telefono", "Fecha Inicio Contrato", "Salario", "Rol"]
 
             # Agregar filas a la tabla
             for empleado in empleados:
-                if empleado[10] == departamento_id and empleado[9] != "gerente":
-                    table.add_row([empleado[0], empleado[2], empleado[10], empleado[9]])
-                    empleados_desasignados.append(empleado[0])
-
+                table.add_row([empleado[0], empleado[1], empleado[2], empleado[4], empleado[5], empleado[6], empleado[7], empleado[8]])
+                empleados_asignados.append(empleado[0])
 
             # Imprimir la tabla
             print(table)
 
-            empleado_id = input("ID Empleado: ")
-            
+            while True:
+                empleado_id = input("ID Empleado: ")
 
-            try:
-                # Eliminar el empleado del departamento
-                departamento_model = DepartamentoModel()
-                #AGREGAR IF TRUE
-                departamento_model.eliminar_empleado(empleado_id)
-                print("\nEmpleado eliminado exitosamente")
+                try:
+                    # Eliminar el empleado del departamento
+                    departamento_model = DepartamentoModel()
+                    departamento_model.eliminar_empleado(empleado_id)
+                    print("\nEmpleado eliminado exitosamente")
+                    break
 
-            except Exception as e:
-                print(f"\nError al eliminar el empleado: {str(e)}")
+                except Exception as e:
+                    print(f"\nError al eliminar el empleado: {str(e)}")
+
             
             pausar()
             self.mostrar()
@@ -1606,7 +1629,6 @@ class MenuGestionarRegistros:
         elif seleccion == "s":
             return
 
-
 # Clase de Menú de Empleado
 class MenuEmpleado:
     def __init__(self, usuario, id,  rol):
@@ -1736,14 +1758,32 @@ class MenuEmpleado:
                 elif seleccion == "2":
                     limpiar_pantalla()
                     print("--- Crear Registro ---\n")
+                    
+                    while True:
+                        id_empleado = input("ID Empleado: ")
+                        id_proyecto = input("ID Proyecto: ")
+                        fecha = input("Fecha DD-MM-YYYY: ")
+                        horas = input("Horas trabajadas: ")
+                        descripcion = input("Descripcion de tareas: ")
 
-                    id_empleado = input("ID Empleado: ")
-                    id_proyecto = input("ID Proyecto: ")
-                    fecha = input("Fecha YYYY-MM-DD: ")
-                    horas = input("Horas trabajadas: ")
-                    descripcion = input("Descripcion de tareas: ")
+                        # Convertir Fecha a formato datetime
+                        try:
+                            fecha = datetime.datetime.strptime(fecha, '%d-%m-%Y')
+                        except:
+                            print("Error: Formato de fecha incorrecto")
+                            pausar()
+                            self.mostrar()
 
+                        # Si variables NO vacias
+                        if id_empleado and id_proyecto and fecha and horas and descripcion:
+                            break
+                        else:
+                            print("Error: Debe ingresar todos los datos")
+                    
                     registro = Registro(id_empleado, id_proyecto, fecha, horas, descripcion)
+
+                    print(registro)
+                    pausar()
 
                     try:
                         self.registro_model.crear(registro)
@@ -1813,8 +1853,11 @@ def validar_rut(rut):
 
 # Si el archivo es ejecutado directamente se ejecuta el menú principal
 if __name__ == '__main__':
-    menu = MenuAdmin("testMode", "admin")
+    menu = MenuGerente("TestGerente", 1,  "gerente")
     menu.mostrar()
+
+    """ menu = MenuAdmin("TestAdmin", "admin")
+    menu.mostrar() """
     
 
 
