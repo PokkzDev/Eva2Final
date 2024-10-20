@@ -483,6 +483,43 @@ class RegistroModel:
 
         return registros
     
+    def listar_por_gerente(self, id_gerente: int):
+        db = DB_Conn()
+        conexion = db.iniciar_conexion()
+        cursor = conexion.cursor()
+
+        cursor.execute("""
+                    SELECT 
+                        rt.id AS registro_id,
+                        rt.fecha,
+                        rt.horas_trabajadas,
+                        rt.descripcion_tareas,
+                        e.rut AS empleado_rut,
+                        e.username AS empleado_username,
+                        p.nombre AS proyecto_nombre,
+                        d.nombre AS departamento_nombre
+                    FROM 
+                        registro_de_tiempo rt
+                    JOIN 
+                        empleado_proyecto ep ON rt.empleado_id = ep.empleado_id AND rt.proyecto_id = ep.proyecto_id
+                    JOIN 
+                        empleados e ON rt.empleado_id = e.id
+                    JOIN 
+                        empleados_departamento ed ON e.id = ed.empleado_id
+                    JOIN 
+                        departamento d ON ed.departamento_id = d.id
+                    JOIN 
+                        proyectos p ON rt.proyecto_id = p.id
+                    JOIN 
+                        empleados g ON d.id_gerente = g.id
+                    WHERE 
+                        g.id = %s;
+                    """, (id_gerente,))
+
+        registros = cursor.fetchall()
+
+        return registros
+    
     def crear(self, registro: Registro):
         db = DB_Conn()
         conexion = db.iniciar_conexion()

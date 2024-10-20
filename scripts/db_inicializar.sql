@@ -183,6 +183,11 @@ VALUES
     (2, 1, '2021-01-01', 8, 'Descripción de tareas 2'),
     (3, 2, '2021-01-01', 8, 'Descripción de tareas 3'),
     (4, 3, '2021-01-01', 8, 'Descripción de tareas 4'),
+    (4, 1, '2021-01-01', 8, 'PRUEBA 1'),
+    (4, 1, '2021-01-01', 8, 'PRUEBA 2'),
+    (4, 1, '2021-01-01', 8, 'PRUEBA 3'),
+    (4, 1, '2021-01-01', 8, 'PRUEBA 4'),
+    (4, 1, '2021-01-01', 8, 'PRUEBA 5'),
     (5, 1, '2021-01-01', 8, 'Descripción de tareas 5');
  
 -- Reload privileges to ensure the new user and permissions are applied

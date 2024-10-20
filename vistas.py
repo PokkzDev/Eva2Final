@@ -1336,9 +1336,9 @@ class MenuGerenteEmpleadosDepartamentos:
         print("--- Menú de Gestionar Empleados en Departamento asignado ---\n")
 
         opciones = [
-            "1. Mostrar Empleados en Departamento asignado",
-            "2. Agregar Empleados en Departamento asignado",
-            "3. Eliminar Empleados en Departamento asignado",
+            "1. Mostrar Empleados de mi Departamento",
+            "2. Asignar Empleados a mi Departamento",
+            "3. Desasignar Empleados de mi Departamento",
             
             "S. Volver"
         ]
@@ -1412,7 +1412,7 @@ class MenuGerenteEmpleadosDepartamentos:
 
             while True:
 
-                empleado_id = input("ID Empleado: ")
+                empleado_id = input("ID Empleado a asignar: ")
                 departamento_id = self.departamento_id
 
                 # a INT
@@ -1468,17 +1468,17 @@ class MenuGerenteEmpleadosDepartamentos:
             print(table)
 
             while True:
-                empleado_id = input("ID Empleado: ")
+                empleado_id = input("ID Empleado a desasignar: ")
 
                 try:
                     # Eliminar el empleado del departamento
                     departamento_model = DepartamentoModel()
                     departamento_model.eliminar_empleado(empleado_id)
-                    print("\nEmpleado eliminado exitosamente")
+                    print("\nEmpleado desasignado exitosamente")
                     break
 
                 except Exception as e:
-                    print(f"\nError al eliminar el empleado: {str(e)}")
+                    print(f"\nError al desasignar el empleado: {str(e)}")
 
             
             pausar()
@@ -1493,10 +1493,14 @@ class MenuGerenteEmpleadosDepartamentos:
 
 # Menu de Gerente para Gestionar Los registros de su tiempo
 class MenuGestionarRegistros:
-    def __init__(self, usuario, departamento_id, rol):
+    def __init__(self, usuario, id_usuario, rol):
         self.usuario = usuario
-        self.departamento_id = departamento_id
+        self.id = id_usuario
         self.rol = rol
+
+        print(self.usuario, self.id, self.rol)
+        input()
+
         self.empleado_model = EmpleadoModel()
 
     def mostrar(self):
@@ -1505,8 +1509,8 @@ class MenuGestionarRegistros:
 
         opciones = [
             "1. Ver Registros",
-            "2. Agregar Registro",
-            "3. Modificar Registro",
+            "2. Agregar Mi Registro",
+            "3. Modificar Mis Registro",
             "S. Volver"
         ]
 
@@ -1522,20 +1526,22 @@ class MenuGestionarRegistros:
             usuario = self.usuario
             
             registro_model = RegistroModel()
-            registros = registro_model.listar()
+            registros = registro_model.listar_por_gerente(self.id)
+
 
             # Crear una tabla
             table = PrettyTable()
 
+            # expect (1, datetime.date(2021, 1, 1), 8.0, 'Descripción de tareas 1', '12345678-9', 'admin', 'Proyecto 1', 'Desarrollo')
+            
             # Definir los nombres de las columnas
-            table.field_names = ["ID", "Username", "Nombre Proyecto", "Fecha", "Horas Trabajadas", "Tarea Descrita"]
-            
-            # Transformar la fecha a un formato más legible
+            table.field_names = ["ID", "Fecha", "Horas Trabajadas", "Descripcion de Tareas", "Username", "Nombre Proyecto", "Rol"]
+
+            # Agregar filas a la tabla
             for registro in registros:
-                if registro[1] == usuario:
-                    fecha = registro[3].strftime("%d-%m-%Y")
-                    table.add_row([registro[0], registro[1], registro[2], fecha, registro[4], registro[5]])
-            
+                fecha = registro[1].strftime("%d-%m-%Y")
+                table.add_row([registro[0], fecha, registro[2], registro[3], registro[4], registro[5], registro[6]])
+
             # Imprimir la tabla
             print(table)
 
@@ -1545,47 +1551,38 @@ class MenuGestionarRegistros:
         elif seleccion == "2":
             limpiar_pantalla()
             print("--- Agregar Registro ---\n")
-            empleados = self.empleado_model.listar()
-            table = PrettyTable()
-            usuario = self.usuario
-
-            # Definir los nombres de las columnas
-            table.field_names = ["ID", "RUT", "Username", "Direccion", "Telefono", "Fecha Inicio Contrato", "Salario", "Rol"]
             
-            for empleado in empleados:
-                if empleado[2] == usuario:
-                    table.add_row([empleado[0], empleado[1], empleado[2], empleado[4], empleado[5], empleado[6], empleado[7], empleado[9]])
-                    empleado_propio = empleado[0]
-
-            empleado_id = empleado_propio
-            proyecto_id = input("ID Proyecto: ")
+            empleado_id = self.id
             
             while True:
+                proyecto_id = input("ID Proyecto: ")
                 fecha = input("Fecha DD-MM-YYYY: ")
-                try:
-                    fecha = datetime.datetime.strptime(fecha, '%d-%m-%Y')
-                    break
-                except:
-                    print("No ingreso el formato de fecha")
+                horas_trabajadas = input("Horas Trabajadas: ")
+                descripcion_tareas = input("Descripcion de Tareas: ")
 
-            horas_trabajadas = input("Horas Trabajadas: ")
-            descripcion_tareas = input("Descripcion de Tareas: ")
+                if proyecto_id and fecha and horas_trabajadas and descripcion_tareas:
+                    # Validar que las fechas sean correctas
+                    try:
+                        fecha = datetime.datetime.strptime(fecha, '%d-%m-%Y')
+                        break
+                    except:
+                        print("No ingreso el formato de fecha")
+                else:
+                    print("No puede dejar campos vacios")
 
-            # Crear el objeto Registro
+            # Crear el objeto Registro  
             registro = Registro(empleado_id, proyecto_id, fecha, horas_trabajadas, descripcion_tareas)
-
+            
             try:
                 # Guardar el registro en la base de datos
                 registro_model = RegistroModel()
-                # AGREGAR IF TRUE
                 registro_model.crear(registro)
                 print("\nRegistro creado exitosamente")
 
             except Exception as e:
                 print(f"\nError al crear el registro: {str(e)}")
-            
-            pausar()
-            self.mostrar()
+
+                
         # Modificar Registro de Tiempo
         elif seleccion == "3":
             limpiar_pantalla()
@@ -1853,7 +1850,7 @@ def validar_rut(rut):
 
 # Si el archivo es ejecutado directamente se ejecuta el menú principal
 if __name__ == '__main__':
-    menu = MenuGerente("TestGerente", 1,  "gerente")
+    menu = MenuGerente("TestGerente", 2,  "gerente")
     menu.mostrar()
 
     """ menu = MenuAdmin("TestAdmin", "admin")
