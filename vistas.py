@@ -31,7 +31,7 @@ class MenuPrincipal:
             if user:
                 print("\nUsuario autenticado")
                 time.sleep(1)
-               
+               #
 
                 
                 if user[2] == "usuario":
