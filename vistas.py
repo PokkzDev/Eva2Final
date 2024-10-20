@@ -1508,9 +1508,9 @@ class MenuGestionarRegistros:
         print("--- Menú de Administrar Registros ---\n")
 
         opciones = [
-            "1. Ver Registros",
-            "2. Agregar Mi Registro",
-            "3. Modificar Mis Registro",
+            "1. Ver Registros de Mi Departamento",
+            "2. Agregar mi Registro",
+            "3. Modificar un Registro",
             "S. Volver"
         ]
 

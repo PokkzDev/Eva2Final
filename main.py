@@ -10,3 +10,5 @@ if __name__ == '__main__':
 # admin: Asdf1234
 # gerente: Asdf1234
 # usuario: Asdf1234
+
+# PARA CAMBIAR PUERTO, MODIFICAR EN /MODULES/DB_CONN.PY
