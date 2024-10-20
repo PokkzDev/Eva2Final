@@ -208,6 +208,18 @@ class DepartamentoModel:
                 (departamento.nombre, departamento.descripcion, departamento.id_gerente, id)
             )
 
+            # Actualizar empleados 
+
+            cursor.execute(
+                "UPDATE empleados SET  departamento_id = %s WHERE id = %s",
+                (id, departamento.id_gerente)
+            )
+
+            cursor.execute(
+                "UPDATE empleados_departamento SET departamento_id = %s WHERE empleado_id = %s",
+                (id, departamento.id_gerente)
+            )
+
             conexion.commit()
             cursor.close()
         except Exception as e:

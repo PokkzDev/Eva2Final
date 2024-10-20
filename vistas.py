@@ -24,42 +24,36 @@ class MenuPrincipal:
         auth = Auth()
 
         try:
-
             user = auth.iniciar_sesion(usuario, password)
-            
             
             if user:
                 print("\nUsuario autenticado")
                 time.sleep(1)
-               
-
                 
-                if user[2] == "usuario":
-                    print(user)
-                    pausar()
-                    menu = MenuEmpleado(user[1], user[2])
-                    menu.mostrar()
-                elif user[2] == "admin":
-                    print(user)
-                    pausar()
-                    menu = MenuAdmin(user[1], user[2])
-                    menu.mostrar()
+                menu = None
+                if user["rol"] == "admin":
+                    menu = MenuAdmin(user["username"], user["rol"])
+                elif user["rol"] == "gerente":
+                    menu = MenuGerente(user["username"], user["departamento_id"], user["rol"])
+                elif user["rol"] == "usuario":
+                    menu = MenuEmpleado(user["username"], user["id"], user["rol"])
                 else:
-                    print(user)
-                    pausar()
-                    menu = MenuGerente(user[1], user[2], user[3])
-                    menu.mostrar()
+                    print("\nRol no válido")
+                    time.sleep(1)
+                    self.mostrar()
+                    return
                 
+                if menu:
+                    menu.mostrar()
             else:
-                print("\nCreedenciales incorrectas")
+                print("\nCredenciales incorrectas")
                 time.sleep(1)
                 self.mostrar()
-        except:
-            print("\nError en la autenticación")
+        except Exception as e:
+            print(f"\nError en la autenticación: {e}")
             pausar()
             time.sleep(1)
             self.mostrar()
-
 # Clase de Menú de Administrador
 class MenuAdmin:
     def __init__(self, usuario, rol):
@@ -299,7 +293,7 @@ class MenuAdministrarEmpleados:
                     print("Usted no agrego un ID valido")
 
             while True:
-                rol = input("Rol: ")
+                rol = input("Rol (admin, gerente, usuario): ")
                 if rol.strip():
                     if rol == "admin" or rol == "usuario" or rol == "gerente":
                         break
@@ -489,282 +483,289 @@ class MenuAdministrarEmpleados:
 # Clase de Menú de Administrar Departamentos
 class MenuAdministrarDepartamentos:
     def mostrar(self):
-        limpiar_pantalla()
-        print("--- Menú de Administrar Departamentos ---\n")
-
-        opciones = [
-            "1. Administrar Departamentos",
-            "2. Administrar Empleados de Departamento",
-        ]
-        
-        for opcion in opciones:
-            print(opcion)
-
-
-        seleccion = input("\nSeleccione una opción: ").strip().lower()
-
-        if seleccion == "1":
+        while True:
             limpiar_pantalla()
-            print("--- Menú de Departamentos ---\n")
+            print("--- Menú de Administrar Departamentos ---\n")
 
             opciones = [
-                "1. Ver Departamentos",
-                "2. Agregar Departamento",
-                "3. Modificar Departamento",
-                "4. Eliminar Departamento",
+                "1. Administrar Departamentos",
+                "2. Administrar Empleados de Departamento",
                 "S. Volver"
             ]
-
-            for opcion in opciones:
-                print(opcion)
-
-            seleccion = input("\nSeleccione una opción: ").strip().lower()
-
-            if seleccion == "1":
-                limpiar_pantalla()
-                print("--- Departamentos ---\n")
-                
-                departamento_model = DepartamentoModel()
-                departamentos = departamento_model.listar()
-
-                # Crear una tabla
-                table = PrettyTable()
-
-                # Definir los nombres de las columnas
-                table.field_names = ["ID", "Nombre", "Descripcion", "ID Gerente", "Empleado", "Rol"]
-
-                # Agregar filas a la tabla
-                for departamento in departamentos:
-                    table.add_row([departamento[0], departamento[1], departamento[2], departamento[3], departamento[4], departamento[5]])
-
-                # Imprimir la tabla
-                print(table)
-
-                pausar()
-                self.mostrar()
-
-            elif seleccion == "2":
-                limpiar_pantalla()
-                print("--- Agregar Departamento ---\n")
-
-                nombre = input("Nombre: ")
-                descripcion = input("Descripcion: ")
-                id_gerente = input("ID Gerente (0 para 'No asignado'): ")
-
-                # Crear el objeto Departamento
-                departamento = Departamento(nombre, descripcion, id_gerente)
-
-                try:
-                    # Guardar el departamento en la base de datos
-                    departamento_model = DepartamentoModel()
-                    departamento_model.crear(departamento)
-                    print("\nDepartamento creado exitosamente")
-                except Exception as e:
-                    print(f"\nError al crear el departamento: {str(e)}")
-                
-                pausar()
-                self.mostrar()
-
-            elif seleccion == "3":
-                limpiar_pantalla()
-                print("--- Modificar Departamento ---\n")
-
-                id_departamento = input("Ingrese el ID del departamento a modificar: ")
-
-                # Buscar el departamento en la base de datos
-                departamento_model = DepartamentoModel()
-                departamento = departamento_model.existe(id_departamento)
-
-                if departamento:
-                    print("\nDepartamento encontrado\n")
-
-                    # Mostrar los datos del departamento
-                    new_nombre = input(f"Nombre ({departamento[1]}): ") or departamento[1]
-                    new_descripcion = input(f"Descripcion ({departamento[2]}): ") or departamento[2]
-                    new_id_gerente = input(f"ID Gerente ({departamento[3]}): ") or departamento[3]
-
-                    # Crear el objeto Departamento
-                    departamento = Departamento(new_nombre, new_descripcion, new_id_gerente)
-
-                    try:
-                        # Actualizar el departamento en la base de datos
-                        departamento_model.actualizar(departamento, id_departamento)
-                        print("\nDepartamento actualizado exitosamente")
-                        pausar()
-                        self.mostrar()
-                    except Exception as e:
-                        print(f"\nError al actualizar el departamento: {str(e)}")
-
-                else:
-                    print("\nDepartamento no encontrado")
-                    pausar()
-                    self.mostrar()   
-
-            elif seleccion == "4":
-                limpiar_pantalla()
-                print("--- Eliminar Departamento ---\n")
-
-                id_departamento = input("Ingrese el ID del departamento a eliminar: ")
-
-                # Buscar el departamento en la base de datos
-                departamento_model = DepartamentoModel()
-                departamento = departamento_model.existe(id_departamento)
-
-                if departamento:
-                    print("\nDepartamento encontrado\n")
-
-                    try:
-                        # Eliminar el departamento de la base de datos
-                        departamento_model.eliminar(id_departamento)
-                        print("\nDepartamento eliminado exitosamente")
-                        pausar()
-                        self.mostrar()
-                    except Exception as e:
-                        print(f"\nError al eliminar el departamento: {str(e)}")
-                        pausar()
-                        self.mostrar()
-                else:
-                    print("\nDepartamento no encontrado")
-                    pausar()
-                    self.mostrar()
-
-            elif seleccion == "s":
-                return
-            else:
-                print("Opción no válida")
-                time.sleep(1)
-                self.mostrar()
-
-        elif seleccion == "2":
-            limpiar_pantalla()
-            print("--- Menú de Empleados de Departamento ---\n")
-            opciones = [
-                "1. Ver Empleados por Departamento",
-                "2. Asignar Empleados a Departamento",
-                "3. Modificar Empleados de Departamento",
-                "4. Eliminar Empleados de Departamento",
-                "S. Volver"
-            ]
-
-            for opcion in opciones:
-                print(opcion)
-
-            seleccion = input("\nSeleccione una opción: ").strip().lower()
-
-            if seleccion == "1":
-                limpiar_pantalla()
-                print("--- Empleados por Departamento ---\n")
-
-                departamento_id = input("Ingrese el ID del departamento: ")
-
-                # Buscar el departamento en la base de datos
-                departamento_model = DepartamentoModel()
-                departamento = departamento_model.existe(departamento_id)
-
-                if departamento:
-                    print("\nDepartamento encontrado\n")
-
-                    empleados = departamento_model.listar_empleados(departamento_id)
-
-                    # Crear una tabla
-                    table = PrettyTable()
-
-                    # Definir los nombres de las columnas
-                    table.field_names = ["ID", "RUT", "Username", "Direccion", "Telefono", "Fecha Inicio Contrato", "Salario", "Rol"]
-
-                    # Agregar filas a la tabla
-                    for empleado in empleados:
-                        table.add_row([empleado[0], empleado[1], empleado[2], empleado[4], empleado[5], empleado[6], empleado[7], empleado[9]])
-
-                    # Imprimir la tabla
-                    print(table)
-                    pausar()
-                    self.mostrar()
-                else:
-                    print("\nDepartamento no encontrado")
-                    pausar()
-                    self.mostrar()
             
-            # Asignar Empleados a Departamento
-            elif seleccion == "2":
-                limpiar_pantalla()
-                print("--- Asignar Empleados a Departamento ---\n")
+            for opcion in opciones:
+                print(opcion)
 
-                empleado_id = input("ID Empleado: ")
-                departamento_id = input("ID Departamento: ")
 
-                # a INT
-                empleado_id = int(empleado_id)
-                departamento_id = int(departamento_id)
+            seleccion = input("\nSeleccione una opción: ").strip().lower()
 
-                try:
-                    # Asignar el empleado al departamento
-                    departamento_model = DepartamentoModel()
-                    if departamento_model.asignar_empleado(empleado_id, departamento_id):
-                        print("\nEmpleado asignado exitosamente")
-                    else:
-                        print("\nEmpleado ya esta asignado a un departamento")
+            if seleccion == "1":
+                while True:
+                    limpiar_pantalla()
+                    print("--- Menú de Departamentos ---\n")
+
+                    opciones = [
+                        "1. Ver Departamentos",
+                        "2. Agregar Departamento",
+                        "3. Modificar Departamento",
+                        "4. Eliminar Departamento",
+                        "S. Volver"
+                    ]
+
+                    for opcion in opciones:
+                        print(opcion)
+
+                    seleccion = input("\nSeleccione una opción: ").strip().lower()
+
+                    if seleccion == "1":
+                        limpiar_pantalla()
+                        print("--- Departamentos ---\n")
                         
-                except Exception as e:
-                    print(f"\nError al asignar el empleado: {str(e)}")
-                
-                pausar()
-                self.mostrar()
-            
-            # Modificar Empleados de Departamento
-            elif seleccion == "3":
-                limpiar_pantalla()
-                print("--- Modificar Empleados de Departamento ---\n")
+                        departamento_model = DepartamentoModel()
+                        departamentos = departamento_model.listar()
 
-                empleado_id = input("ID Empleado: ")
-                departamento_id = input("ID Departamento al que se asignara: ")
+                        # Crear una tabla
+                        table = PrettyTable()
 
-                # a INT
-                empleado_id = int(empleado_id)
-                departamento_id = int(departamento_id)
+                        # Definir los nombres de las columnas
+                        table.field_names = ["ID", "Nombre", "Descripcion", "ID Gerente", "Empleado", "Rol"]
 
-                try:
-                    # Modificar el empleado del departamento
-                    departamento_model = DepartamentoModel()
-                    departamento_model.modificar_empleado(empleado_id, departamento_id)
-                    print("\nEmpleado modificado exitosamente")
-                except Exception as e:
-                    print(f"\nError al modificar el empleado: {str(e)}")
-                
-                pausar()
-                self.mostrar()
-            
-            # Eliminar Empleados de Departamento
-            elif seleccion == "4":
-                limpiar_pantalla()
-                print("--- Eliminar Empleados de Departamento ---\n")
+                        # Agregar filas a la tabla
+                        for departamento in departamentos:
+                            table.add_row([departamento[0], departamento[1], departamento[2], departamento[3], departamento[4], departamento[5]])
 
-                empleado_id = input("ID Empleado: ")
-                
+                        # Imprimir la tabla
+                        print(table)
 
-                try:
-                    # Eliminar el empleado del departamento
-                    departamento_model = DepartamentoModel()
-                    departamento_model.eliminar_empleado(empleado_id)
-                    print("\nEmpleado eliminado exitosamente")
+                        pausar()
+                        self.mostrar()
 
-                except Exception as e:
-                    print(f"\nError al eliminar el empleado: {str(e)}")
-                
-                pausar()
-                self.mostrar()
+                    elif seleccion == "2":
+                        limpiar_pantalla()
+                        print("--- Agregar Departamento ---\n")
+
+                        nombre = input("Nombre: ")
+                        descripcion = input("Descripcion: ")
+                        id_gerente = input("ID Gerente (0 para 'No asignado'): ")
+
+                        # Crear el objeto Departamento
+                        departamento = Departamento(nombre, descripcion, id_gerente)
+
+                        try:
+                            # Guardar el departamento en la base de datos
+                            departamento_model = DepartamentoModel()
+                            departamento_model.crear(departamento)
+                            print("\nDepartamento creado exitosamente")
+                        except Exception as e:
+                            print(f"\nError al crear el departamento: {str(e)}")
+                        
+                        pausar()
+                        self.mostrar()
+
+                    elif seleccion == "3":
+                        limpiar_pantalla()
+                        print("--- Modificar Departamento ---\n")
+
+                        id_departamento = input("Ingrese el ID del departamento a modificar: ")
+
+                        # Buscar el departamento en la base de datos
+                        departamento_model = DepartamentoModel()
+                        departamento = departamento_model.existe(id_departamento)
+
+                        if departamento:
+                            print("\nDepartamento encontrado\n")
+
+                            # Mostrar los datos del departamento
+                            new_nombre = input(f"Nombre ({departamento[1]}): ") or departamento[1]
+                            new_descripcion = input(f"Descripcion ({departamento[2]}): ") or departamento[2]
+                            new_id_gerente = input(f"ID Gerente ({departamento[3]}): ") or departamento[3]
+
+                            # Crear el objeto Departamento
+                            departamento = Departamento(new_nombre, new_descripcion, new_id_gerente)
+
+                            try:
+                                # Actualizar el departamento en la base de datos
+                                departamento_model.actualizar(departamento, id_departamento)
+                                print("\nDepartamento actualizado exitosamente")
+                                pausar()
+                                self.mostrar()
+                            except Exception as e:
+                                print(f"\nError al actualizar el departamento: {str(e)}")
+
+                        else:
+                            print("\nDepartamento no encontrado")
+                            pausar()
+                            self.mostrar()   
+
+                    elif seleccion == "4":
+                        limpiar_pantalla()
+                        print("--- Eliminar Departamento ---\n")
+
+                        id_departamento = input("Ingrese el ID del departamento a eliminar: ")
+
+                        # Buscar el departamento en la base de datos
+                        departamento_model = DepartamentoModel()
+                        departamento = departamento_model.existe(id_departamento)
+
+                        if departamento:
+                            print("\nDepartamento encontrado\n")
+
+                            try:
+                                # Eliminar el departamento de la base de datos
+                                departamento_model.eliminar(id_departamento)
+                                print("\nDepartamento eliminado exitosamente")
+                                pausar()
+                                self.mostrar()
+                            except Exception as e:
+                                print(f"\nError al eliminar el departamento: {str(e)}")
+                                pausar()
+                                self.mostrar()
+                        else:
+                            print("\nDepartamento no encontrado")
+                            pausar()
+                            self.mostrar()
+
+                    elif seleccion == "s":
+                        break
+                    else:
+                        print("Opción no válida")
+                        time.sleep(1)
+                        self.mostrar()
+
+            elif seleccion == "2":
+                while True:
+                    limpiar_pantalla()
+                    print("--- Menú de Empleados de Departamento ---\n")
+                    opciones = [
+                        "1. Ver Empleados por Departamento",
+                        "2. Asignar Empleados a Departamento",
+                        "3. Modificar Empleados de Departamento",
+                        "4. Eliminar Empleados de Departamento",
+                        "S. Volver"
+                    ]
+
+                    for opcion in opciones:
+                        print(opcion)
+
+                    seleccion = input("\nSeleccione una opción: ").strip().lower()
+
+                    if seleccion == "1":
+                        limpiar_pantalla()
+                        print("--- Empleados por Departamento ---\n")
+
+                        departamento_id = input("Ingrese el ID del departamento: ")
+
+                        # Buscar el departamento en la base de datos
+                        departamento_model = DepartamentoModel()
+                        departamento = departamento_model.existe(departamento_id)
+
+                        if departamento:
+                            print("\nDepartamento encontrado\n")
+
+                            empleados = departamento_model.listar_empleados(departamento_id)
+
+                            # Crear una tabla
+                            table = PrettyTable()
+
+                            # Definir los nombres de las columnas
+                            table.field_names = ["ID", "RUT", "Username", "Direccion", "Telefono", "Fecha Inicio Contrato", "Salario", "Rol"]
+
+                            # Agregar filas a la tabla
+                            for empleado in empleados:
+                                table.add_row([empleado[0], empleado[1], empleado[2], empleado[4], empleado[5], empleado[6], empleado[7], empleado[9]])
+
+                            # Imprimir la tabla
+                            print(table)
+                            pausar()
+                            self.mostrar()
+                        else:
+                            print("\nDepartamento no encontrado")
+                            pausar()
+                            self.mostrar()
+                    
+                    # Asignar Empleados a Departamento
+                    elif seleccion == "2":
+                        limpiar_pantalla()
+                        print("--- Asignar Empleados a Departamento ---\n")
+
+                        empleado_id = input("ID Empleado: ")
+                        departamento_id = input("ID Departamento: ")
+
+                        # a INT
+                        empleado_id = int(empleado_id)
+                        departamento_id = int(departamento_id)
+
+                        try:
+                            # Asignar el empleado al departamento
+                            departamento_model = DepartamentoModel()
+                            if departamento_model.asignar_empleado(empleado_id, departamento_id):
+                                print("\nEmpleado asignado exitosamente")
+                            else:
+                                print("\nEmpleado ya esta asignado a un departamento")
+                                
+                        except Exception as e:
+                            print(f"\nError al asignar el empleado: {str(e)}")
+                        
+                        pausar()
+                        self.mostrar()
+                    
+                    # Modificar Empleados de Departamento
+                    elif seleccion == "3":
+                        limpiar_pantalla()
+                        print("--- Modificar Empleados de Departamento ---\n")
+
+                        empleado_id = input("ID Empleado: ")
+                        departamento_id = input("ID Departamento al que se asignara: ")
+
+                        # a INT
+                        empleado_id = int(empleado_id)
+                        departamento_id = int(departamento_id)
+
+                        try:
+                            # Modificar el empleado del departamento
+                            departamento_model = DepartamentoModel()
+                            departamento_model.modificar_empleado(empleado_id, departamento_id)
+                            print("\nEmpleado modificado exitosamente")
+                        except Exception as e:
+                            print(f"\nError al modificar el empleado: {str(e)}")
+                        
+                        pausar()
+                        self.mostrar()
+                    
+                    # Eliminar Empleados de Departamento
+                    elif seleccion == "4":
+                        limpiar_pantalla()
+                        print("--- Eliminar Empleados de Departamento ---\n")
+
+                        empleado_id = input("ID Empleado: ")
+                        
+
+                        try:
+                            # Eliminar el empleado del departamento
+                            departamento_model = DepartamentoModel()
+                            departamento_model.eliminar_empleado(empleado_id)
+                            print("\nEmpleado eliminado exitosamente")
+
+                        except Exception as e:
+                            print(f"\nError al eliminar el empleado: {str(e)}")
+                        
+                        pausar()
+                        self.mostrar()
+
+                    elif seleccion == "s":
+                        break
+                    else:
+                        print("Opción no válida")
+                        time.sleep(1)
+                        self.mostrar()
 
             elif seleccion == "s":
-                return
+                break
             else:
                 print("Opción no válida")
                 time.sleep(1)
                 self.mostrar()
-
-        elif seleccion == "s":
-            return
         
-
 # Clase de Menú de Administrar Proyectos
 class MenuAdministrarProyectos:
     def mostrar(self):
@@ -1589,8 +1590,9 @@ class MenuGestionarRegistros:
 
 # Clase de Menú de Empleado
 class MenuEmpleado:
-    def __init__(self, usuario, rol):
+    def __init__(self, usuario, id,  rol):
         self.usuario = usuario
+        self.id = id
         self.rol = rol
 
     def mostrar(self):
@@ -1781,4 +1783,6 @@ def en_desarrollo():
 
 # Si el archivo es ejecutado directamente se ejecuta el menú principal
 if __name__ == '__main__':
-   pass
+    menu = MenuPrincipal()
+    menu.mostrar()
+    
