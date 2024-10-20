@@ -35,18 +35,15 @@ class MenuPrincipal:
 
                 
                 if user[2] == "usuario":
-                    print(user)
-                    pausar()
+                    
                     menu = MenuEmpleado(user[1], user[2])
                     menu.mostrar()
                 elif user[2] == "admin":
-                    print(user)
-                    pausar()
+                    
                     menu = MenuAdmin(user[1], user[2])
                     menu.mostrar()
                 else:
-                    print(user)
-                    pausar()
+                    
                     menu = MenuGerente(user[1], user[2], user[3])
                     menu.mostrar()
                 
