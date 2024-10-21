@@ -25,7 +25,6 @@ CREATE TABLE empleados (
     telefono VARCHAR(20) NOT NULL,
     fecha_inicio_contrato DATE NOT NULL,
     salario FLOAT NOT NULL CHECK (salario > 0),
-    departamento_id INT,
     rol ENUM('admin', 'gerente', 'usuario') NOT NULL
 );
  
@@ -68,11 +67,7 @@ CREATE TABLE empleado_proyecto (
     INDEX (proyecto_id)
 );
  
--- Add foreign key constraint to empleados table for departamento_id
-ALTER TABLE empleados
-ADD CONSTRAINT fk_departamento
-FOREIGN KEY (departamento_id) REFERENCES departamento(id) ON DELETE SET NULL;
- 
+
 -- Create informe table
 CREATE TABLE informe (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -102,28 +97,35 @@ CREATE TABLE registro_de_tiempo (
 );
  
 -- Insert multiple employees
-INSERT INTO empleados (rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, departamento_id, rol)
+INSERT INTO empleados (rut, username, password, direccion, telefono, fecha_inicio_contrato, salario, rol)
 VALUES 
-    ('12345678-9', 'admin', '$2b$10$Zyk/rZJobzzf/iOKoyMgu.5SjVpmVsAtK0cMNHm0NISCjxk3BCu3K', 'Calle Falsa 123', '123456789', '2021-01-01', 1000000, NULL, 'admin'),
-    ('12345678-12', 'd.mendez', '$2b$12$WC3gQOL3y.O2IoOPAptkjO9THiTnzDCbstntMy7xQG.p8zNsvRK7O', 'Calle Falsa 123', '123456789', '2021-01-01', 1000000, NULL, 'admin'),
-    ('87654321-9', 'usuario', '$2b$10$Zyk/rZJobzzf/iOKoyMgu.5SjVpmVsAtK0cMNHm0NISCjxk3BCu3K', 'Calle Falsa 321', '987654321', '2021-01-01', 500000, NULL, 'usuario'),
-    ('123123123', 'b.altamirano', '$2b$10$sIkhFShlAKlg.jDD.fVnT.ghVgG3p1trd7ReJZGphyJxMbG4ATrhK', 'Calle Falsa 123', '123456789', '2021-01-01', 1000000, NULL, 'admin'),
-    ('k-k', 'gerente', '$2b$10$Zyk/rZJobzzf/iOKoyMgu.5SjVpmVsAtK0cMNHm0NISCjxk3BCu3K', 'Calle Falsa 123', '987654321', '2023-01-01', 700000, NULL, 'gerente');
+    ('12345678-9', 'admin', '$2b$10$Zyk/rZJobzzf/iOKoyMgu.5SjVpmVsAtK0cMNHm0NISCjxk3BCu3K', 'Calle Falsa 123', '123456789', '2021-01-01', 1000000, 'admin'),
+    ('12345667-9', 'gerente', '$2b$10$Zyk/rZJobzzf/iOKoyMgu.5SjVpmVsAtK0cMNHm0NISCjxk3BCu3K', 'Calle Falsa 123', '987654321', '2023-01-01', 700000, 'gerente'),
+    ('12366667-9', 'gerente2', '$2b$10$Zyk/rZJobzzf/iOKoyMgu.5SjVpmVsAtK0cMNHm0NISCjxk3BCu3K', 'Calle Falsa 123', '987654321', '2023-01-01', 700000, 'gerente'),
+    ('12338667-9', 'gerente3', '$2b$10$Zyk/rZJobzzf/iOKoyMgu.5SjVpmVsAtK0cMNHm0NISCjxk3BCu3K', 'Calle Falsa 123', '987654321', '2023-01-01', 700000, 'gerente'),
+    ('87654321-9', 'usuario', '$2b$10$Zyk/rZJobzzf/iOKoyMgu.5SjVpmVsAtK0cMNHm0NISCjxk3BCu3K', 'Calle Falsa 321', '987654321', '2021-01-01', 500000, 'usuario'),
+    ('12345678-12', 'd.mendez', '$2b$12$WC3gQOL3y.O2IoOPAptkjO9THiTnzDCbstntMy7xQG.p8zNsvRK7O', 'Calle Falsa 123', '123456789', '2021-01-01', 1000000, 'admin'),
+    ('123123123', 'b.altamirano', '$2b$10$sIkhFShlAKlg.jDD.fVnT.ghVgG3p1trd7ReJZGphyJxMbG4ATrhK', 'Calle Falsa 123', '123456789', '2021-01-01', 1000000, 'admin');
+    
 
 -- Insert multiple departments
 INSERT INTO departamento (nombre, descripcion, id_gerente)
 VALUES 
-    ('Desarrollo', 'Departamento de desarrollo de software', 5),
+    ('Desarrollo', 'Departamento de desarrollo de software', NULL),
     ('Ventas', 'Departamento de ventas', NULL),
-    ('Marketing', 'Departamento de marketing', NULL);
- 
--- Insert multiple projects
-INSERT INTO proyectos (nombre, descripcion, fecha_inicio, fecha_fin)
-VALUES 
-    ('Proyecto 1', 'Descripción del proyecto 1', '2021-01-01', '2021-12-31'),
-    ('Proyecto 2', 'Descripción del proyecto 2', '2021-01-01', '2021-12-31'),
-    ('Proyecto 3', 'Descripción del proyecto 3', '2021-01-01', '2021-12-31');
- 
+    ('Marketing', 'Departamento de marketing', NULL),
+    ('Recursos Humanos', 'Departamento de recursos humanos', NULL),
+    ('Finanzas', 'Departamento de finanzas', NULL),
+    ('Operaciones', 'Departamento de operaciones', NULL),
+    ('Soporte', 'Departamento de soporte', NULL),
+    ('Administración', 'Departamento de administración', NULL),
+    ('Logística', 'Departamento de logística', NULL);
+
+-- ALTER departament add gerentes
+UPDATE departamento SET id_gerente = 2 WHERE id = 1;
+UPDATE departamento SET id_gerente = 3 WHERE id = 2;
+UPDATE departamento SET id_gerente = 4 WHERE id = 3;
+
 -- Insert multiple employees into departments
 INSERT INTO empleados_departamento (empleado_id, departamento_id)
 VALUES 
@@ -132,6 +134,20 @@ VALUES
     (3, 2),
     (4, 3),
     (5, 1);
+
+-- Insert multiple projects
+INSERT INTO proyectos (nombre, descripcion, fecha_inicio, fecha_fin)
+VALUES 
+    ('Proyecto 1', 'Descripción del proyecto 1', '2021-01-01', '2021-12-31'),
+    ('Proyecto 2', 'Descripción del proyecto 2', '2021-01-01', '2021-12-31'),
+    ('Proyecto 3', 'Descripción del proyecto 3', '2021-01-01', '2021-12-31'),
+    ('Proyecto 4', 'Descripción del proyecto 4', '2021-01-01', '2021-12-31'),
+    ('Proyecto 5', 'Descripción del proyecto 5', '2021-01-01', '2021-12-31'),
+    ('Proyecto 6', 'Descripción del proyecto 6', '2021-01-01', '2021-12-31'),
+    ('Proyecto 7', 'Descripción del proyecto 7', '2021-01-01', '2021-12-31'),
+    ('Proyecto 8', 'Descripción del proyecto 8', '2021-01-01', '2021-12-31'),
+    ('Proyecto 9', 'Descripción del proyecto 9', '2021-01-01', '2021-12-31');
+    
  
 -- Insert multiple employees into projects
 INSERT INTO empleado_proyecto (empleado_id, proyecto_id)
@@ -149,7 +165,11 @@ VALUES
     ('Informe 2', 'Descripción del informe 2', '2021-01-01', 2, 1),
     ('Informe 3', 'Descripción del informe 3', '2021-01-01', 3, 2),
     ('Informe 4', 'Descripción del informe 4', '2021-01-01', 4, 3),
-    ('Informe 5', 'Descripción del informe 5', '2021-01-01', 5, 1);
+    ('Informe 5', 'Descripción del informe 5', '2021-01-01', 1, 1),
+    ('Informe 6', 'Descripción del informe 6', '2021-01-01', 2, 1),
+    ('Informe 7', 'Descripción del informe 7', '2021-01-01', 3, 2),
+    ('Informe 8', 'Descripción del informe 8', '2021-01-01', 4, 3),
+    ('Informe 9', 'Descripción del informe 9', '2021-01-01', 1, 1);
  
 -- Insert multiple time records
 INSERT INTO registro_de_tiempo (empleado_id, proyecto_id, fecha, horas_trabajadas, descripcion_tareas)
@@ -158,6 +178,16 @@ VALUES
     (2, 1, '2021-01-01', 8, 'Descripción de tareas 2'),
     (3, 2, '2021-01-01', 8, 'Descripción de tareas 3'),
     (4, 3, '2021-01-01', 8, 'Descripción de tareas 4'),
+    (5, 1, '2021-01-01', 8, 'Descripción de tareas 5'),
+    (1, 1, '2021-01-01', 8, 'Descripción de tareas 1'),
+    (2, 1, '2021-01-01', 8, 'Descripción de tareas 2'),
+    (3, 2, '2021-01-01', 8, 'Descripción de tareas 3'),
+    (4, 3, '2021-01-01', 8, 'Descripción de tareas 4'),
+    (2, 1, '2021-01-01', 8, 'PRUEBA 1'),
+    (2, 1, '2021-01-01', 8, 'PRUEBA 2'),
+    (2, 1, '2021-01-01', 8, 'PRUEBA 3'),
+    (2, 1, '2021-01-01', 8, 'PRUEBA 4'),
+    (2, 1, '2021-01-01', 8, 'PRUEBA 5'),
     (5, 1, '2021-01-01', 8, 'Descripción de tareas 5');
  
 -- Reload privileges to ensure the new user and permissions are applied
